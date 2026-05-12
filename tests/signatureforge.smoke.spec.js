@@ -1,0 +1,56 @@
+import { expect, test } from "@playwright/test";
+
+test.describe("SignatureForge AI smoke tests", () => {
+  test.beforeEach(async ({ context, page, baseURL }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"], {
+      origin: baseURL
+    });
+    await page.goto("/builder", { waitUntil: "networkidle" });
+  });
+
+  test("Free Mode protects branding and locks advanced controls", async ({ page }) => {
+    await expect(page).toHaveURL(/\/builder$/);
+    await expect(page.locator(".tier-toggle select")).toHaveValue("free");
+    await expect(page.locator(".signature-preview-surface")).toContainText("Created with SignatureForge AI");
+
+    await expect(page.locator('label:has-text("Layout") select')).toBeDisabled();
+    await expect(page.locator('label:has-text("Vertical divider") input')).toBeDisabled();
+    await expect(page.locator('label:has-text("Remove SignatureForge AI branding") input')).toBeDisabled();
+
+    await page.getByRole("button", { name: "Copy Signature HTML" }).click();
+    await page.waitForTimeout(150);
+
+    const copiedHtml = await page.evaluate(() => navigator.clipboard.readText());
+    expect(copiedHtml).toContain("Created with");
+    expect(copiedHtml).toContain("SignatureForge AI");
+  });
+
+  test("Pro Mode unlocks controls and can export without footer branding", async ({ page }) => {
+    await page.locator(".tier-toggle select").selectOption("pro");
+
+    await expect(page.locator('label:has-text("Layout") select')).toBeEnabled();
+    await expect(page.locator('label:has-text("Vertical divider") input')).toBeEnabled();
+    await expect(page.locator('label:has-text("Remove SignatureForge AI branding") input')).toBeEnabled();
+
+    await page.locator('label:has-text("Remove SignatureForge AI branding") input').check();
+    await page.getByRole("button", { name: "Copy Signature HTML" }).click();
+    await page.waitForTimeout(150);
+
+    const copiedHtml = await page.evaluate(() => navigator.clipboard.readText());
+    expect(copiedHtml).not.toContain("Created with SignatureForge AI");
+  });
+
+  test("Generated signature keeps core export and layout rules", async ({ page }) => {
+    const preview = page.locator(".signature-preview-surface");
+    const previewHtml = await preview.innerHTML();
+
+    expect(previewHtml).toContain('href="tel:');
+    expect(previewHtml).toContain('href="mailto:');
+    expect(previewHtml).toContain('border-collapse:collapse');
+    expect(previewHtml).not.toContain('border="1"');
+    expect(previewHtml).not.toContain("border:1px solid #");
+
+    const hasHorizontalOverflow = await preview.evaluate((element) => element.scrollWidth > element.clientWidth);
+    expect(hasHorizontalOverflow).toBe(false);
+  });
+});

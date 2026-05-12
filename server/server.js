@@ -22,7 +22,14 @@ app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/api/health", (_request, response) => {
-  response.json({ ok: true, app: "signatureforge-ai" });
+  response.json({
+    ok: true,
+    app: "signatureforge-ai",
+    integrations: {
+      openaiConfigured: Boolean(process.env.OPENAI_API_KEY),
+      stripeConfigured: Boolean(stripe && monthlyPriceId)
+    }
+  });
 });
 
 app.post("/api/ai/signature-suggestions", async (request, response) => {
@@ -37,10 +44,7 @@ app.post("/api/ai/signature-suggestions", async (request, response) => {
 app.post("/api/billing/create-checkout-session", async (request, response) => {
   try {
     if (!stripe || !monthlyPriceId) {
-      return response.status(503).json({
-        configured: false,
-        message: "Billing not configured yet."
-      });
+      return response.status(503).json(buildBillingUnavailableResponse());
     }
 
     const plan = String(request.body?.plan || "pro").trim().toLowerCase();
@@ -68,10 +72,7 @@ app.post("/api/billing/create-checkout-session", async (request, response) => {
 app.post("/api/billing/portal", async (request, response) => {
   try {
     if (!stripe) {
-      return response.status(503).json({
-        configured: false,
-        message: "Billing not configured yet."
-      });
+      return response.status(503).json(buildBillingUnavailableResponse());
     }
 
     const customerId = String(request.body?.customerId || "").trim();
@@ -98,7 +99,7 @@ app.post("/api/billing/portal", async (request, response) => {
 
 app.post("/api/stripe/webhook", express.raw({ type: "application/json" }), (_request, response) => {
   response.status(503).json({
-    configured: false,
+    ...buildBillingUnavailableResponse(),
     message: "Stripe webhook handling is not configured yet."
   });
 });
@@ -113,9 +114,13 @@ app.get("*", (request, response, next) => {
   return response.sendFile(path.join(distPath, "index.html"));
 });
 
-app.listen(port, () => {
-  console.log(`SignatureForge AI running on http://localhost:${port}`);
-});
+export default app;
+
+if (isDirectExecution()) {
+  app.listen(port, () => {
+    console.log(`SignatureForge AI running on port ${port}`);
+  });
+}
 
 function getAppOrigin(request) {
   const originHeader = request.headers.origin;
@@ -124,4 +129,16 @@ function getAppOrigin(request) {
   }
 
   return `${request.protocol}://${request.get("host")}`;
+}
+
+function buildBillingUnavailableResponse() {
+  return {
+    configured: false,
+    message: "Billing not configured yet. Add Stripe keys to enable upgrades.",
+    missingStripeKeys: !stripe || !monthlyPriceId
+  };
+}
+
+function isDirectExecution() {
+  return process.argv[1] === fileURLToPath(import.meta.url);
 }

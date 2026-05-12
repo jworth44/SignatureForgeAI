@@ -111,6 +111,7 @@ export default function AiSuggestionPanel({ draft, onApplySuggestions }) {
           <p className="support-copy">
             Source: {suggestions.source === "openai" ? "OpenAI API" : "Built-in fallback logic"}
           </p>
+          {suggestions.message ? <p className="support-copy">{suggestions.message}</p> : null}
         </div>
       ) : null}
     </section>

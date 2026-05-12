@@ -52,20 +52,23 @@ export async function buildSignatureSuggestions(input) {
         return {
           ...aiPayload,
           suggestedLayoutValue: normalizeSignatureLayoutValue(aiPayload.suggestedLayoutValue || aiPayload.suggestedLayout),
-          source: "openai"
+          source: "openai",
+          message: "Generated with OpenAI."
         };
       }
     } catch {
       return {
         ...buildFallbackSuggestions(normalized),
-        source: "fallback"
+        source: "fallback",
+        message: "OpenAI is unavailable right now. Using built-in suggestions instead."
       };
     }
   }
 
   return {
     ...buildFallbackSuggestions(normalized),
-    source: "fallback"
+    source: "fallback",
+    message: "OpenAI is not configured. Using built-in suggestions instead."
   };
 }
 

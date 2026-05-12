@@ -23,9 +23,9 @@ export default function UpgradePage() {
         window.location.assign(payload.url);
         return;
       }
-      setStatus(payload.message || "Billing not configured yet.");
+      setStatus(payload.message || "Billing not configured yet. Add Stripe keys to enable upgrades.");
     } catch {
-      setStatus("Billing not configured yet.");
+      setStatus("Billing not configured yet. Add Stripe keys to enable upgrades.");
     } finally {
       setLoadingPlan("");
     }

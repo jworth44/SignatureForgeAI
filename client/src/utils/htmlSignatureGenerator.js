@@ -118,7 +118,23 @@ export function generateSignatureHtml({ draft, tier, includeBranding }) {
   const meta = getLayoutMeta(sanitized.layout);
   const shouldIncludeBranding = sanitized.tier === "free" ? true : Boolean(sanitized.includeBranding);
   const brandingRow = shouldIncludeBranding
-    ? `<tr><td colspan="${columnCount}" style="padding-top:12px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:16px;color:#6b7280;">Created with <a href="https://signatureforge.ai" style="color:${brandColor};text-decoration:none;font-weight:700;">SignatureForge AI</a></td></tr>`
+    ? `
+      <tr>
+        <td colspan="${columnCount}" style="padding-top:12px;">
+          <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border-spacing:0;width:100%;background:${fadeColor(brandColor, 0.06)};border-top:1px solid ${fadeColor(brandColor, 0.2)};">
+            <tr>
+              <td style="padding:10px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:16px;color:#6b7280;">
+                Created with <a href="https://signatureforge.ai" style="color:${brandColor};text-decoration:none;font-weight:700;">SignatureForge AI</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:2px 0 10px 0;font-family:Arial,Helvetica,sans-serif;font-size:10px;line-height:15px;color:#7b8498;">
+                Free signature powered by <a href="https://signatureforge.ai" style="color:${brandColor};text-decoration:none;font-weight:700;">SignatureForge AI</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>`
     : "";
   const premiumRibbon = sanitized.layout === "premium-split"
     ? `<tr><td colspan="${columnCount}" style="padding-bottom:10px;"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Premium split layout</span></td></tr>`

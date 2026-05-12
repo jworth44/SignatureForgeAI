@@ -12,6 +12,7 @@ test.describe("SignatureForge AI smoke tests", () => {
     await expect(page).toHaveURL(/\/builder$/);
     await expect(page.locator(".tier-toggle select")).toHaveValue("free");
     await expect(page.locator(".signature-preview-surface")).toContainText("Created with SignatureForge AI");
+    await expect(page.getByText("Free signatures include SignatureForge AI branding. Editing/removing branding is a Pro feature.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Copy Signature" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Copy Raw HTML" })).toHaveCount(0);
     await expect(page.locator('label:has-text("Logo size") select')).toBeVisible();
@@ -46,8 +47,10 @@ test.describe("SignatureForge AI smoke tests", () => {
     });
 
     expect(clipboardPayload.types).toContain("text/html");
+    expect(clipboardPayload.html).toContain('colspan="2"');
     expect(clipboardPayload.html).toContain("Created with");
     expect(clipboardPayload.html).toContain("SignatureForge AI");
+    expect(clipboardPayload.html).toContain('https://signatureforge.ai');
     expect(clipboardPayload.text).toContain("SignatureForge AI");
   });
 

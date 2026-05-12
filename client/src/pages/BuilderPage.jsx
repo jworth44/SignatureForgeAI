@@ -210,9 +210,17 @@ export default function BuilderPage() {
             <p className="support-copy">
               Use Copy Signature for Gmail, Outlook, Apple Mail, and Yahoo. Do not paste raw HTML into your email settings unless the platform specifically asks for HTML.
             </p>
+            {isFree ? (
+              <p className="locked-copy">
+                Free signatures include SignatureForge AI branding. Editing/removing branding is a Pro feature.
+              </p>
+            ) : null}
             {copyState === "success" ? <p className="copy-feedback copy-feedback-success">Signature copied. Paste it into Gmail, Outlook, Apple Mail, or Yahoo.</p> : null}
             {copyState === "error" ? <p className="copy-feedback copy-feedback-error">Copy failed. Try again or use another browser.</p> : null}
-            {isFree ? <p className="locked-copy">Free users can copy and paste the finished branded signature only. Raw HTML and plain text export are Pro options.</p> : null}
+            {isFree ? <p className="locked-copy">Free signatures are branded and limited. Upgrade to Pro to remove branding, unlock advanced layout controls, and export clean editable HTML.</p> : null}
+            <p className="support-copy">
+              Why can I still edit after pasting? Email clients such as Outlook and Gmail allow users to edit pasted signature content. SignatureForge AI controls what is generated and exported, but cannot lock third-party editors. Pro unlocks clean, editable, unbranded output.
+            </p>
             {copyMessage ? <p className="support-copy">{copyMessage}</p> : null}
           </section>
         </div>

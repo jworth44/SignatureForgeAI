@@ -1,4 +1,4 @@
-# SignatureForge AI Deployment
+# Signature Pilot AI Deployment
 
 ## Deploy to Vercel
 
@@ -51,6 +51,7 @@ The Playwright config boots the local API and Vite dev server automatically on i
 - OpenAI requests fall back to deterministic built-in suggestions.
 - Stripe upgrade and portal routes return safe JSON fallback messages instead of crashing.
 - The client-side router is configured for SPA rewrites through `vercel.json`.
+- The live URL can remain `https://signature-forge-ai.vercel.app` temporarily while the product brand is Signature Pilot AI.
 
 ## Stripe optional setup
 

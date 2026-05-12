@@ -18,7 +18,7 @@ export default function AppShell({ children }) {
             SF
           </span>
           <span>
-            <strong>SignatureForge AI</strong>
+            <strong>Signature Pilot AI</strong>
             <small>Smart signatures. Built in minutes.</small>
           </span>
         </NavLink>

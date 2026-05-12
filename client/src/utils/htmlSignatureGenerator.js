@@ -16,7 +16,7 @@ export function getDefaultDraft() {
   return {
     fullName: "Jordan Wells",
     jobTitle: "Founder",
-    companyName: "SignatureForge AI",
+    companyName: "Signature Pilot AI",
     phone: "+1 (555) 123-4567",
     email: "hello@signatureforge.ai",
     website: "signatureforge.ai",
@@ -124,12 +124,12 @@ export function generateSignatureHtml({ draft, tier, includeBranding }) {
           <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border-spacing:0;width:100%;background:${fadeColor(brandColor, 0.06)};border-top:1px solid ${fadeColor(brandColor, 0.2)};">
             <tr>
               <td style="padding:10px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:16px;color:#6b7280;">
-                Created with <a href="https://signatureforge.ai" style="color:${brandColor};text-decoration:none;font-weight:700;">SignatureForge AI</a>
+                Created with <a href="https://signature-forge-ai.vercel.app" style="color:${brandColor};text-decoration:none;font-weight:700;">Signature Pilot AI</a>
               </td>
             </tr>
             <tr>
               <td style="padding:2px 0 10px 0;font-family:Arial,Helvetica,sans-serif;font-size:10px;line-height:15px;color:#7b8498;">
-                Free signature powered by <a href="https://signatureforge.ai" style="color:${brandColor};text-decoration:none;font-weight:700;">SignatureForge AI</a>
+                Free signature powered by <a href="https://signature-forge-ai.vercel.app" style="color:${brandColor};text-decoration:none;font-weight:700;">Signature Pilot AI</a>
               </td>
             </tr>
           </table>
@@ -292,7 +292,7 @@ function stripProtocol(value) {
 function ensureProtocol(value) {
   const trimmed = String(value || "").trim();
   if (!trimmed) {
-    return "https://signatureforge.ai";
+    return "https://signature-forge-ai.vercel.app";
   }
   return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
 }

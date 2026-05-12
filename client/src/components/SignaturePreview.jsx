@@ -21,12 +21,12 @@ export default function SignaturePreview({ draft }) {
         <span>{layoutMeta.name}</span>
         <span>{artifacts.effectiveDraft.showDivider ? "Divider on" : "Divider off"}</span>
         <span>No visible borders</span>
-        <span>{artifacts.includeBranding ? "SignatureForge AI branding included" : "Branding removed"}</span>
+        <span>{artifacts.includeBranding ? "Signature Pilot AI branding included" : "Branding removed"}</span>
       </div>
 
       <div className="signature-preview-surface" dangerouslySetInnerHTML={{ __html: artifacts.previewHtml }} />
 
-      {draft.tier === "free" ? <div className="inline-banner">SignatureForge AI branding included in Free Mode.</div> : null}
+      {draft.tier === "free" ? <div className="inline-banner">Signature Pilot AI branding included in Free Mode.</div> : null}
     </section>
   );
 }

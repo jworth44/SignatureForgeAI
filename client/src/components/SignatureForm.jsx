@@ -136,7 +136,7 @@ export default function SignatureForm({
               type="checkbox"
               onChange={(event) => onBrandingToggle(!event.target.checked)}
             />
-            {isFree ? <small className="locked-copy">SignatureForge AI branding included.</small> : null}
+            {isFree ? <small className="locked-copy">Signature Pilot AI branding included.</small> : null}
           </label>
         </div>
       </div>
@@ -160,7 +160,7 @@ export default function SignatureForm({
             onFileRemove={() => onFileRemove("photoDataUrl")}
           />
         </div>
-        {isFree ? <p className="locked-banner">Free Mode: SignatureForge AI branding included and advanced customization is locked until upgrade.</p> : null}
+        {isFree ? <p className="locked-banner">Free Mode: Signature Pilot AI branding included and advanced customization is locked until upgrade.</p> : null}
       </div>
     </section>
   );

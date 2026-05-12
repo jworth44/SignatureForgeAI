@@ -8,10 +8,10 @@ const PLANS = [
     copy: "Perfect for solo builders who want a clean signature fast.",
     features: ["3 basic templates", "Manual editing", "Copy HTML", "Basic brand color", "Basic logo upload"]
   },
-  {
-    name: "Pro",
-    price: "$12/month",
-    copy: "Unlock premium layouts and AI-powered signature copy.",
+      {
+        name: "Pro",
+        price: "$12/month",
+        copy: "Unlock premium layouts and AI-powered signature copy.",
     features: [
       "Premium templates",
       "AI copy suggestions",
@@ -36,7 +36,7 @@ export default function PricingPage() {
       <section className="section-intro">
         <p className="eyebrow">Pricing</p>
         <h1>Choose the tier that fits your signature workflow.</h1>
-        <p className="hero-subheadline">The free tier is ready to ship signatures today. Pro is designed for brand polish, AI copy support, and premium layouts.</p>
+        <p className="hero-subheadline">The free tier is ready to ship signatures today. Pro is designed for brand polish, AI copy support, and premium layouts inside Signature Pilot AI.</p>
       </section>
 
       <section className="pricing-grid">

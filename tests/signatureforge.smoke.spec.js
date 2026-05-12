@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("SignatureForge AI smoke tests", () => {
+test.describe("Signature Pilot AI smoke tests", () => {
   test.beforeEach(async ({ context, page, baseURL }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"], {
       origin: baseURL
@@ -11,8 +11,8 @@ test.describe("SignatureForge AI smoke tests", () => {
   test("Free Mode protects branding and locks advanced controls", async ({ page }) => {
     await expect(page).toHaveURL(/\/builder$/);
     await expect(page.locator(".tier-toggle select")).toHaveValue("free");
-    await expect(page.locator(".signature-preview-surface")).toContainText("Created with SignatureForge AI");
-    await expect(page.getByText("Free signatures include SignatureForge AI branding. Editing/removing branding is a Pro feature.")).toBeVisible();
+    await expect(page.locator(".signature-preview-surface")).toContainText("Created with Signature Pilot AI");
+    await expect(page.getByText("Free signatures include Signature Pilot AI branding. Editing/removing branding is a Pro feature.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Copy Signature" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Copy Raw HTML" })).toHaveCount(0);
     await expect(page.locator('label:has-text("Logo size") select')).toBeVisible();
@@ -49,9 +49,9 @@ test.describe("SignatureForge AI smoke tests", () => {
     expect(clipboardPayload.types).toContain("text/html");
     expect(clipboardPayload.html).toContain('colspan="2"');
     expect(clipboardPayload.html).toContain("Created with");
-    expect(clipboardPayload.html).toContain("SignatureForge AI");
-    expect(clipboardPayload.html).toContain('https://signatureforge.ai');
-    expect(clipboardPayload.text).toContain("SignatureForge AI");
+    expect(clipboardPayload.html).toContain("Signature Pilot AI");
+    expect(clipboardPayload.html).toContain('https://signature-forge-ai.vercel.app');
+    expect(clipboardPayload.text).toContain("Signature Pilot AI");
   });
 
   test("Pro Mode unlocks controls and can export without footer branding", async ({ page }) => {
@@ -72,7 +72,7 @@ test.describe("SignatureForge AI smoke tests", () => {
     await page.waitForTimeout(150);
 
     const copiedHtml = await page.evaluate(() => navigator.clipboard.readText());
-    expect(copiedHtml).not.toContain("Created with SignatureForge AI");
+    expect(copiedHtml).not.toContain("Created with Signature Pilot AI");
     expect(copiedHtml).toContain('width="140"');
   });
 

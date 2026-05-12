@@ -24,7 +24,7 @@ app.use(express.json({ limit: "1mb" }));
 app.get("/api/health", (_request, response) => {
   response.json({
     ok: true,
-    app: "signatureforge-ai",
+    app: "signature-pilot-ai",
     integrations: {
       openaiConfigured: Boolean(process.env.OPENAI_API_KEY),
       stripeConfigured: Boolean(stripe && monthlyPriceId)
@@ -55,7 +55,7 @@ app.post("/api/billing/create-checkout-session", async (request, response) => {
       success_url: `${getAppOrigin(request)}/upgrade?checkout=success`,
       cancel_url: `${getAppOrigin(request)}/upgrade?checkout=cancel`,
       metadata: {
-        product: "signatureforge-ai",
+        product: "signature-pilot-ai",
         plan: plan === "business" ? "business" : "pro"
       }
     });
@@ -118,7 +118,7 @@ export default app;
 
 if (isDirectExecution()) {
   app.listen(port, () => {
-    console.log(`SignatureForge AI running on port ${port}`);
+    console.log(`Signature Pilot AI running on port ${port}`);
   });
 }
 

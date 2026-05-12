@@ -15,10 +15,10 @@ export default function LandingPage() {
     <div className="page-stack">
       <section className="hero-card">
         <div className="hero-copy">
-          <p className="eyebrow">SignatureForge AI</p>
-          <h1>Create a professional email signature in minutes.</h1>
+          <p className="eyebrow">Signature Pilot AI</p>
+          <h1>Professional email signatures in minutes.</h1>
           <p className="hero-subheadline">
-            Build a polished, clickable email signature for Gmail, Outlook, Apple Mail, Yahoo, and any HTML email client with live preview, export tools, and AI-guided suggestions.
+            Signature Pilot AI is an AI-powered email signature builder for Gmail, Outlook, Apple Mail, Yahoo, and any HTML email client, with live preview, export tools, and AI-guided suggestions.
           </p>
           <div className="hero-actions">
             <Link className="button button-primary" to="/builder">
@@ -36,7 +36,7 @@ export default function LandingPage() {
             <span className="preview-avatar">SF</span>
             <div>
               <strong>Jordan Wells</strong>
-              <p>Founder | SignatureForge AI</p>
+              <p>Founder | Signature Pilot AI</p>
               <small>Smart signatures. Built in minutes.</small>
             </div>
           </div>

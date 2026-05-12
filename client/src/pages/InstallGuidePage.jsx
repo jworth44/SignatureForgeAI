@@ -53,7 +53,7 @@ export default function InstallGuidePage() {
       <section className="section-intro">
         <p className="eyebrow">Install Guide</p>
         <h1>Paste your signature into the email client you already use.</h1>
-        <p className="hero-subheadline">These steps are practical, short, and built around the export buttons in the SignatureForge AI builder.</p>
+        <p className="hero-subheadline">These steps are practical, short, and built around the export buttons in the Signature Pilot AI builder.</p>
       </section>
 
       <section className="panel install-panel">

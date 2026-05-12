@@ -1,6 +1,6 @@
-# SignatureForge AI
+# Signature Pilot AI
 
-Standalone SignatureForge AI app, isolated from PulsePeak.
+Standalone Signature Pilot AI app, isolated from PulsePeak.
 
 Scripts:
 - `npm run dev`

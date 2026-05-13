@@ -27,6 +27,8 @@ export function getDefaultDraft() {
     instagramUrl: "",
     brandColor: "#2663ff",
     layout: "classic",
+    layoutManuallySelected: false,
+    layoutAutoSelected: false,
     tier: "free",
     includeBranding: true,
     logoSize: "medium",

@@ -6,6 +6,7 @@ import SignaturePreview from "../components/SignaturePreview";
 import { generateSignatureArtifacts, getDefaultDraft } from "../utils/htmlSignatureGenerator";
 
 const STORAGE_KEY = "signaturepilot.ai.draft";
+const MOBILE_LAYOUT_BREAKPOINT = 768;
 
 export default function BuilderPage() {
   const [draft, setDraft] = useState(() => {
@@ -26,6 +27,32 @@ export default function BuilderPage() {
 
   const artifacts = useMemo(() => generateSignatureArtifacts(draft), [draft]);
   const isFree = draft.tier === "free";
+  const showAutoLayoutNotice = draft.layout === "mobile-compact" && draft.layoutAutoSelected;
+
+  useEffect(() => {
+    function maybeAutoSelectMobileLayout() {
+      const isNarrowScreen = window.innerWidth < MOBILE_LAYOUT_BREAKPOINT;
+      if (!isNarrowScreen) {
+        return;
+      }
+
+      setDraft((current) => {
+        if (current.layoutManuallySelected || current.layout === "mobile-compact") {
+          return current;
+        }
+
+        return {
+          ...current,
+          layout: "mobile-compact",
+          layoutAutoSelected: true
+        };
+      });
+    }
+
+    maybeAutoSelectMobileLayout();
+    window.addEventListener("resize", maybeAutoSelectMobileLayout);
+    return () => window.removeEventListener("resize", maybeAutoSelectMobileLayout);
+  }, []);
 
   useEffect(() => {
     if (copyState === "idle") {
@@ -41,6 +68,15 @@ export default function BuilderPage() {
 
   function updateField(key, value) {
     setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  function handleLayoutChange(value) {
+    setDraft((current) => ({
+      ...current,
+      layout: value,
+      layoutManuallySelected: true,
+      layoutAutoSelected: false
+    }));
   }
 
   function applySuggestions(payload) {
@@ -147,14 +183,16 @@ export default function BuilderPage() {
           <SignatureForm
             draft={draft}
             effectiveLayout={artifacts.effectiveDraft.layout}
+            showAutoLayoutNotice={showAutoLayoutNotice}
             onFieldChange={updateField}
             onColorChange={(value) => updateField("brandColor", value)}
-            onLayoutChange={(value) => updateField("layout", value)}
+            onLayoutChange={handleLayoutChange}
             onTierChange={(value) =>
               setDraft((current) => ({
                 ...current,
                 tier: value,
                 includeBranding: value === "free" ? true : current.includeBranding,
+                layoutAutoSelected: false,
                 logoSize:
                   value === "free" && (current.logoSize === "custom" || current.logoSize === "extra-large")
                     ? "large"

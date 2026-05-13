@@ -26,6 +26,7 @@ const FIELD_SECTIONS = [
 export default function SignatureForm({
   draft,
   effectiveLayout,
+  showAutoLayoutNotice,
   onFieldChange,
   onColorChange,
   onLayoutChange,
@@ -39,6 +40,8 @@ export default function SignatureForm({
 }) {
   const isFree = draft.tier === "free";
   const customSizeLocked = isFree && (draft.logoSize === "custom" || draft.logoSize === "extra-large");
+  const titleCompanyLength = `${draft.jobTitle || ""} ${draft.companyName || ""}`.trim().length;
+  const showMobileWrapSuggestion = titleCompanyLength >= 36;
 
   return (
     <section className="panel builder-panel">
@@ -96,6 +99,8 @@ export default function SignatureForm({
                 ? "Free Mode includes Classic and Mobile Compact. Use Mobile Compact if your signature looks squeezed in mobile email apps."
                 : "Use Mobile Compact if your signature looks squeezed in mobile email apps."}
             </small>
+            {showAutoLayoutNotice ? <small className="support-copy">Mobile Compact selected for better mobile email compatibility.</small> : null}
+            {showMobileWrapSuggestion ? <small className="locked-copy">Your title/company may wrap on mobile. Mobile Compact is recommended.</small> : null}
           </label>
 
           <label className="field">

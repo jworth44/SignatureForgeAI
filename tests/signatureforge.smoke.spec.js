@@ -129,6 +129,17 @@ test.describe("Signature Pilot AI smoke tests", () => {
 
     await expect(page.locator(".builder-layout")).toBeVisible();
     await expect(page.getByRole("button", { name: "Copy Signature" })).toBeVisible();
+    await expect(page.locator('label:has-text("Layout") select')).toHaveValue("mobile-compact");
+    await expect(page.getByText("Mobile Compact selected for better mobile email compatibility.")).toBeVisible();
+
+    await page.locator('label:has-text("Layout") select').selectOption("classic");
+    await page.reload({ waitUntil: "networkidle" });
+    await expect(page.locator('label:has-text("Layout") select')).toHaveValue("classic");
+    await expect(page.getByText("Mobile Compact selected for better mobile email compatibility.")).toHaveCount(0);
+
+    await page.locator('label:has-text("Job title") input').fill("Senior Regional Partnerships Director");
+    await page.locator('label:has-text("Company name") input').fill("North American Business Development Group");
+    await expect(page.getByText("Your title/company may wrap on mobile. Mobile Compact is recommended.")).toBeVisible();
 
     const previewOverflow = await page.locator(".signature-preview-surface").evaluate((element) => element.scrollWidth > element.clientWidth);
     expect(previewOverflow).toBe(false);

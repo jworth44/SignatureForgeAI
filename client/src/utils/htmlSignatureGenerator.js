@@ -306,7 +306,7 @@ function renderVariantLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, 
 function renderSplitLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, sanitized, showDivider, variantConfig }) {
   const infoBlock = buildInfoBlock({ brandColor, familyMeta, sanitized, variantConfig });
   const visualBlock = buildVisualBlock({
-    accentBar: variantConfig.accentBar,
+    accentBar: sanitized.showTemplateTags && variantConfig.accentBar,
     badgeText: sanitized.showTemplateTags && variantConfig.topBadge ? familyMeta.name : "",
     brandColor,
     logoMarkup,
@@ -387,6 +387,10 @@ function renderCardLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, san
     url: ensureProtocol(sanitized.website)
   });
 
+  const badgeMarkup = sanitized.showTemplateTags
+    ? `<tr><td align="center" style="${cellResetStyle()}padding:0 0 8px 0;"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-size:11px;font-weight:700;">${familyMeta.name}</span></td></tr>`
+    : "";
+
   return `
 <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}width:100%;max-width:420px;font-family:Arial,Helvetica,sans-serif;color:#111827;background:${fadeColor(brandColor, 0.05)};border-radius:18px;">
   <tbody>
@@ -398,9 +402,7 @@ function renderCardLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, san
               <td align="center" style="${cellResetStyle()}padding:0 0 12px 0;">${logoMarkup}</td>
             </tr>
             ${photoMarkup ? `<tr><td align="center" style="${cellResetStyle()}padding:0 0 10px 0;">${photoMarkup}</td></tr>` : ""}
-            <tr>
-              <td align="center" style="${cellResetStyle()}padding:0 0 8px 0;"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-size:11px;font-weight:700;">${familyMeta.name}</span></td>
-            </tr>
+            ${badgeMarkup}
             <tr>
               <td align="center" style="${cellResetStyle()}font-size:${variantConfig.nameSize}px;line-height:${variantConfig.nameSize + 5}px;font-weight:700;padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
             </tr>

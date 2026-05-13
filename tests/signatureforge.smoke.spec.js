@@ -103,6 +103,31 @@ test.describe("Signature Pilot AI step studio smoke tests", () => {
     await expect(page.getByRole("button", { name: "Copied!" })).toBeVisible();
   });
 
+  test("Template tag decorations disappear fully when tags are off and return when enabled", async ({ page }) => {
+    await page.locator(".generator-mode-field select").selectOption("pro");
+    await page.getByRole("button", { name: /Templates/ }).click();
+    await page.locator(".generator-template-card", { hasText: "Contractor Bold" }).getByRole("button", { name: "Use this style" }).click();
+
+    await page.getByRole("button", { name: /Export/ }).click();
+    await page.getByRole("button", { name: "Copy Raw HTML" }).click();
+    const defaultHtml = await page.evaluate(() => navigator.clipboard.readText());
+
+    expect(defaultHtml).not.toContain("Contractor Bold");
+    expect(defaultHtml).not.toContain("max-width:120px;height:6px");
+    expect(defaultHtml).not.toContain("display:inline-block;padding:4px 10px;border-radius:999px");
+
+    await page.getByRole("button", { name: /Styles/ }).click();
+    await page.locator('label:has-text("Show template tags") select').selectOption("on");
+
+    await page.getByRole("button", { name: /Export/ }).click();
+    await page.getByRole("button", { name: "Copy Raw HTML" }).click();
+    const taggedHtml = await page.evaluate(() => navigator.clipboard.readText());
+
+    expect(taggedHtml).toContain("Contractor Bold");
+    expect(taggedHtml).toContain("max-width:120px;height:6px");
+    expect(taggedHtml).toContain("display:inline-block;padding:4px 10px;border-radius:999px");
+  });
+
   test("Desktop builder fits without horizontal overflow and the right preview pane stays visible", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/builder", { waitUntil: "networkidle" });

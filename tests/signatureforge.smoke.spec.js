@@ -21,6 +21,8 @@ test.describe("Signature Pilot AI smoke tests", () => {
     await expect(page.locator('label:has-text("Layout") select option[value="mobile-compact"]')).toHaveCount(1);
     await expect(page.getByRole("button", { name: "Startup Founder" })).toBeVisible();
     await expect(page.getByText("Free Mode includes Executive, Minimal, and Mobile Compact. Contractor and Corporate unlock with Pro.")).toBeVisible();
+    await expect(page.getByText("AI Logo Studio is included with Pro. Generate, upload, blend, and refine logo concepts for your signature.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Generate Logo Concepts" })).toHaveCount(0);
 
     await expect(page.locator('label:has-text("Layout") select')).toBeEnabled();
     await page.locator('label:has-text("Layout") select').selectOption("mobile-compact");
@@ -74,8 +76,26 @@ test.describe("Signature Pilot AI smoke tests", () => {
     await expect(page.locator('label:has-text("Remove Signature Pilot AI branding") input')).toBeEnabled();
     await expect(page.getByRole("button", { name: "Copy Signature" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Copy Raw HTML" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Generate Logo Concepts" })).toBeVisible();
     await expect(page.locator('label:has-text("Logo size") select option[value="extra-large"]')).not.toHaveAttribute("disabled", "");
     await expect(page.locator('label:has-text("Logo size") select option[value="custom"]')).not.toHaveAttribute("disabled", "");
+
+    const logoBuffer = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9s7h5XQAAAAASUVORK5CYII=",
+      "base64"
+    );
+    await page.locator("#ai-logo-references").setInputFiles({
+      name: "reference.png",
+      mimeType: "image/png",
+      buffer: logoBuffer
+    });
+    await expect(page.getByAltText("Reference 1")).toBeVisible();
+
+    await page.getByRole("button", { name: "Generate Logo Concepts" }).click();
+    await expect(page.getByText("Demo logo concepts generated locally because AI image generation is not configured.")).toBeVisible();
+    await expect(page.locator(".logo-concept-card")).toHaveCount(4);
+    await page.getByRole("button", { name: "Select for Signature" }).first().click();
+    await expect(page.locator(".signature-preview-surface img")).toHaveAttribute("src", /data:image\/svg\+xml;base64/);
 
     await page.locator('label:has-text("Remove Signature Pilot AI branding") input').check();
     await page.locator('label:has-text("Layout") select').selectOption("mobile-compact");

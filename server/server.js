@@ -4,7 +4,7 @@ import cors from "cors";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import Stripe from "stripe";
-import { buildSignatureSuggestions } from "./signatureForge.js";
+import { buildLogoStudioConcepts, buildSignatureSuggestions } from "./signatureForge.js";
 
 const app = express();
 const port = process.env.PORT || 3101;
@@ -19,7 +19,7 @@ const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SEC
 const monthlyPriceId = process.env.STRIPE_PRICE_ID || process.env.STRIPE_MONTHLY_PRICE_ID || "";
 
 app.use(cors());
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "8mb" }));
 
 app.get("/api/health", (_request, response) => {
   response.json({
@@ -36,6 +36,15 @@ app.post("/api/ai/signature-suggestions", async (request, response) => {
   try {
     const suggestions = await buildSignatureSuggestions(request.body || {});
     return response.json(suggestions);
+  } catch (error) {
+    return response.status(400).json({ message: error.message });
+  }
+});
+
+app.post("/api/ai/logo-studio", async (request, response) => {
+  try {
+    const payload = await buildLogoStudioConcepts(request.body || {});
+    return response.json(payload);
   } catch (error) {
     return response.status(400).json({ message: error.message });
   }

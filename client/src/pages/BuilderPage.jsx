@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import AiSuggestionPanel from "../components/AiSuggestionPanel";
+import AiLogoStudio from "../components/AiLogoStudio";
 import SignatureForm from "../components/SignatureForm";
 import SignaturePreview from "../components/SignaturePreview";
 import { generateSignatureArtifacts, getDefaultDraft } from "../utils/htmlSignatureGenerator";
@@ -262,6 +263,8 @@ export default function BuilderPage() {
             onFileSelect={readFileAsDataUrl}
             onFileRemove={(field) => updateField(field, "")}
           />
+
+          <AiLogoStudio draft={draft} onSelectLogo={(value) => updateField("logoDataUrl", value)} />
 
           <AiSuggestionPanel draft={draft} onApplySuggestions={applySuggestions} />
         </div>

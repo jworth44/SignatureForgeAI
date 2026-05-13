@@ -38,7 +38,7 @@ test.describe("Signature Pilot AI generator smoke tests", () => {
   });
 
   test("Pro mode unlocks uploads, template switching, polish, and clean export", async ({ page }) => {
-    await page.locator('.generator-builder-topactions select').selectOption("pro");
+    await page.locator(".generator-mode-field select").selectOption("pro");
 
     await page.getByRole("button", { name: /Images/ }).click();
     const logoBuffer = Buffer.from(
@@ -78,7 +78,7 @@ test.describe("Signature Pilot AI generator smoke tests", () => {
   });
 
   test("Built-in smart suggestions still do not auto-overwrite current draft", async ({ page }) => {
-    await page.locator('.generator-builder-topactions select').selectOption("pro");
+    await page.locator(".generator-mode-field select").selectOption("pro");
 
     const originalTitle = await page.locator('label:has-text("Job title*") input').inputValue();
     await page.getByRole("button", { name: /Styles/ }).click();
@@ -96,7 +96,7 @@ test.describe("Signature Pilot AI generator smoke tests", () => {
   });
 
   test("Generated signature keeps export safety rules across layouts", async ({ page }) => {
-    await page.locator('.generator-builder-topactions select').selectOption("pro");
+    await page.locator(".generator-mode-field select").selectOption("pro");
     await page.getByRole("button", { name: /Styles/ }).click();
     const layouts = ["classic", "minimal", "corporate", "premium-split", "mobile-compact"];
     const previews = [];
@@ -131,17 +131,21 @@ test.describe("Signature Pilot AI generator smoke tests", () => {
       const root = document.documentElement;
       const preview = document.querySelector(".generator-preview-pane")?.getBoundingClientRect();
       const editor = document.querySelector(".generator-editor-pane")?.getBoundingClientRect();
+      const footer = document.querySelector(".generator-editor-footer")?.getBoundingClientRect();
       return {
         scrollWidth: root.scrollWidth,
         innerWidth: window.innerWidth,
         previewRight: preview?.right ?? 0,
-        editorLeft: editor?.left ?? 0
+        editorLeft: editor?.left ?? 0,
+        footerBottom: footer?.bottom ?? 0,
+        innerHeight: window.innerHeight
       };
     });
 
     expect(layout.scrollWidth).toBeLessThanOrEqual(layout.innerWidth + 1);
     expect(layout.previewRight).toBeLessThanOrEqual(layout.innerWidth + 1);
     expect(layout.editorLeft).toBeGreaterThanOrEqual(0);
+    expect(layout.footerBottom).toBeLessThanOrEqual(layout.innerHeight + 1);
   });
 
   test("Homepage stays within the viewport on mobile", async ({ page }) => {

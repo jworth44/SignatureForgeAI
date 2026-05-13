@@ -103,40 +103,35 @@ const STEP_ITEMS = [
     label: "Details",
     eyebrow: "Step 1: Details",
     title: "Enter your signature details",
-    copy: "Start with the essentials your recipients should see first.",
-    icon: "T"
+    copy: "Start with the essentials your recipients should see first."
   },
   {
     key: "images",
     label: "Images",
     eyebrow: "Step 2: Images",
     title: "Upload your logo or profile image",
-    copy: "Use direct file uploads instead of hosted image URLs.",
-    icon: "I"
+    copy: "Use direct file uploads instead of hosted image URLs."
   },
   {
     key: "templates",
     label: "Templates",
     eyebrow: "Step 3: Templates",
     title: "Select your template",
-    copy: "Choose a layout that matches how your signature should feel.",
-    icon: "L"
+    copy: "Choose a layout that matches how your signature should feel."
   },
   {
     key: "styles",
     label: "Styles",
     eyebrow: "Step 4: Styles",
     title: "Style your signature",
-    copy: "Adjust the visual finish without breaking email-safe export.",
-    icon: "S"
+    copy: "Adjust the visual finish without breaking email-safe export."
   },
   {
     key: "export",
     label: "Export",
     eyebrow: "Step 5: Export",
     title: "Create and copy your signature",
-    copy: "Export a finished signature for Gmail, Outlook, Apple Mail, and Yahoo.",
-    icon: "C"
+    copy: "Export a finished signature for Gmail, Outlook, Apple Mail, and Yahoo."
   }
 ];
 
@@ -244,6 +239,15 @@ export default function BuilderPage() {
 
   const stepIndex = STEP_ITEMS.findIndex((step) => step.key === activeStep);
   const activeStepMeta = STEP_ITEMS[stepIndex] || STEP_ITEMS[0];
+  const modeControl = (
+    <label className="tier-toggle generator-mode-field">
+      <span>Access</span>
+      <select value={draft.tier} onChange={(event) => handleTierChange(event.target.value)}>
+        <option value="free">Free Mode</option>
+        <option value="pro">Pro Mode</option>
+      </select>
+    </label>
+  );
 
   function updateField(key, value) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -443,7 +447,10 @@ export default function BuilderPage() {
               <p className="eyebrow">{activeStepMeta.eyebrow}</p>
               <h2>{activeStepMeta.title}</h2>
             </div>
-            <p className="generator-required-note">* Indicates a required field</p>
+            <div className="generator-card-header-side">
+              {modeControl}
+              <p className="generator-required-note">* Indicates a required field</p>
+            </div>
           </div>
 
           <div className="generator-form-grid">
@@ -957,13 +964,6 @@ export default function BuilderPage() {
           <p className="generator-version-marker">Step Studio v1</p>
         </div>
         <div className="generator-builder-topactions">
-          <label className="tier-toggle">
-            <span>Mode</span>
-            <select value={draft.tier} onChange={(event) => handleTierChange(event.target.value)}>
-              <option value="free">Free Mode</option>
-              <option value="pro">Pro Mode</option>
-            </select>
-          </label>
           <Link className="button button-secondary" to="/install">
             Install Guide
           </Link>
@@ -985,7 +985,7 @@ export default function BuilderPage() {
                 onClick={() => setActiveStep(step.key)}
               >
                 <span className="generator-step-icon" aria-hidden="true">
-                  {step.icon}
+                  {String(STEP_ITEMS.findIndex((item) => item.key === step.key) + 1).padStart(2, "0")}
                 </span>
                 <span className="generator-step-name">{step.label}</span>
               </button>

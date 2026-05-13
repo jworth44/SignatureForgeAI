@@ -12,7 +12,7 @@ export default function SignaturePreview({
   const artifacts = useMemo(() => generateSignatureArtifacts(draft), [draft]);
   const layoutMeta = getLayoutMeta(artifacts.effectiveDraft.layout);
   const zoomFactor = Number(previewZoom) / 100;
-  const previewShellMaxWidth = previewDevice === "mobile" ? Math.round(390 * zoomFactor) : Math.round(960 * zoomFactor);
+  const previewShellMaxWidth = previewDevice === "mobile" ? Math.round(390 * zoomFactor) : Math.round(1080 * zoomFactor);
 
   return (
     <section className="workspace-preview-shell">

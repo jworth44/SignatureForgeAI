@@ -91,6 +91,16 @@ export default function BuilderPage() {
   const artifacts = useMemo(() => generateSignatureArtifacts(draft), [draft]);
   const isFree = artifacts.effectiveDraft.tier === "free";
   const showAutoLayoutNotice = draft.layout === "mobile-compact" && draft.layoutAutoSelected;
+  const templatePreviewMap = useMemo(
+    () =>
+      Object.fromEntries(
+        TEMPLATE_OPTIONS.map((template) => {
+          const previewDraft = buildTemplatePreviewDraft(template, draft);
+          return [template.value, generateSignatureArtifacts(previewDraft)];
+        })
+      ),
+    [draft]
+  );
 
   useEffect(() => {
     function syncLayoutForScreenWidth() {
@@ -554,6 +564,7 @@ export default function BuilderPage() {
             {TEMPLATE_OPTIONS.map((template) => {
               const locked = isFree && template.pro;
               const active = artifacts.effectiveDraft.layout === template.value;
+              const templatePreview = templatePreviewMap[template.value];
               return (
                 <button
                   key={template.value}
@@ -562,20 +573,28 @@ export default function BuilderPage() {
                   type="button"
                   onClick={() => handleLayoutChange(template.value)}
                 >
-                  <div className={`template-mini-preview template-mini-preview-${template.tone}`}>
-                    <div className="template-mini-logo" />
-                    <div className="template-mini-copy">
-                      <span className="template-mini-name">{template.person}</span>
-                      <span className="template-mini-title">{template.title}</span>
-                      <span className="template-mini-cta">{template.cta}</span>
+                  <div className="workspace-template-card-head">
+                    <div className="workspace-template-copy">
+                      <div className="workspace-template-title-row">
+                        <strong>{template.label}</strong>
+                        <span className={`workspace-badge ${locked ? "workspace-badge-pro" : "workspace-badge-free"}`}>{template.pro ? "Pro" : "Free"}</span>
+                      </div>
+                      <span>{template.description}</span>
                     </div>
                   </div>
-                  <div className="workspace-template-copy">
-                    <div className="workspace-template-title-row">
-                      <strong>{template.label}</strong>
-                      <span className={`workspace-badge ${locked ? "workspace-badge-pro" : "workspace-badge-free"}`}>{template.pro ? "Pro" : "Free"}</span>
+                  <div className={`workspace-template-signature-shell workspace-template-signature-shell-${template.tone}`}>
+                    <div className="workspace-template-signature-frame">
+                      <div className="workspace-template-signature-canvas">
+                        <div
+                          className="workspace-template-signature-surface"
+                          dangerouslySetInnerHTML={{ __html: templatePreview.previewHtml }}
+                        />
+                      </div>
                     </div>
-                    <span>{template.description}</span>
+                    <div className="workspace-template-card-meta">
+                      <span>{template.person}</span>
+                      <span>{template.cta}</span>
+                    </div>
                   </div>
                 </button>
               );
@@ -628,6 +647,19 @@ export default function BuilderPage() {
       </section>
     </div>
   );
+}
+
+function buildTemplatePreviewDraft(template, draft) {
+  const fallback = getDefaultDraft();
+
+  return {
+    ...fallback,
+    ...draft,
+    tier: template.pro ? "pro" : draft.tier,
+    layout: template.value,
+    showDivider: template.value === "mobile-compact" ? false : draft.showDivider,
+    includeBranding: template.pro ? false : draft.tier === "free" ? true : draft.includeBranding
+  };
 }
 
 function loadInitialDraft() {

@@ -7,6 +7,46 @@ import { generateSignatureArtifacts, getDefaultDraft } from "../utils/htmlSignat
 
 const STORAGE_KEY = "signaturepilot.ai.draft";
 const MOBILE_LAYOUT_BREAKPOINT = 768;
+const SAMPLE_PROFILES = {
+  founder: {
+    fullName: "Jordan Wells",
+    jobTitle: "Founder & CEO",
+    companyName: "Northlight Studio",
+    phone: "+1 (555) 123-4567",
+    email: "jordan@northlightstudio.com",
+    website: "northlightstudio.com",
+    location: "Winnipeg, MB",
+    linkedinUrl: "https://linkedin.com/company/northlightstudio",
+    brandColor: "#2663ff",
+    layout: "minimal",
+    ctaText: "See our latest work"
+  },
+  contractor: {
+    fullName: "Mason Ortiz",
+    jobTitle: "Licensed General Contractor",
+    companyName: "Ortiz Build Co.",
+    phone: "+1 (555) 241-8801",
+    email: "mason@ortizbuildco.com",
+    website: "ortizbuildco.com",
+    location: "Dallas, TX",
+    brandColor: "#d97706",
+    layout: "contractor",
+    ctaText: "Request a project quote"
+  },
+  executive: {
+    fullName: "Avery Chen",
+    jobTitle: "VP, Strategic Partnerships",
+    companyName: "Summit Ridge Capital",
+    phone: "+1 (555) 880-4112",
+    email: "avery@summitridgecapital.com",
+    website: "summitridgecapital.com",
+    location: "Chicago, IL",
+    linkedinUrl: "https://linkedin.com/company/summitridgecapital",
+    brandColor: "#0f172a",
+    layout: "executive",
+    ctaText: "Schedule an introduction"
+  }
+};
 
 export default function BuilderPage() {
   const [draft, setDraft] = useState(() => {
@@ -68,6 +108,21 @@ export default function BuilderPage() {
 
   function updateField(key, value) {
     setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  function applySampleProfile(profileKey) {
+    const profile = SAMPLE_PROFILES[profileKey];
+    if (!profile) {
+      return;
+    }
+
+    setDraft((current) => ({
+      ...current,
+      ...profile,
+      layout: current.tier === "free" && profile.layout !== "mobile-compact" && profile.layout !== "minimal" ? "executive" : profile.layout,
+      layoutManuallySelected: true,
+      layoutAutoSelected: false
+    }));
   }
 
   function handleLayoutChange(value) {
@@ -184,6 +239,7 @@ export default function BuilderPage() {
             draft={draft}
             effectiveLayout={artifacts.effectiveDraft.layout}
             showAutoLayoutNotice={showAutoLayoutNotice}
+            onApplySampleProfile={applySampleProfile}
             onFieldChange={updateField}
             onColorChange={(value) => updateField("brandColor", value)}
             onLayoutChange={handleLayoutChange}

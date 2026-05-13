@@ -19,7 +19,8 @@ test.describe("Signature Pilot AI smoke tests", () => {
     await expect(page.locator('label:has-text("Logo size") select option[value="extra-large"]')).toHaveAttribute("disabled", "");
     await expect(page.locator('label:has-text("Logo size") select option[value="custom"]')).toHaveAttribute("disabled", "");
     await expect(page.locator('label:has-text("Layout") select option[value="mobile-compact"]')).toHaveCount(1);
-    await expect(page.getByText("Use Mobile Compact if your signature looks squeezed in mobile email apps.")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Startup Founder" })).toBeVisible();
+    await expect(page.getByText("Free Mode includes Executive, Minimal, and Mobile Compact. Contractor and Corporate unlock with Pro.")).toBeVisible();
 
     await expect(page.locator('label:has-text("Layout") select')).toBeEnabled();
     await page.locator('label:has-text("Layout") select').selectOption("mobile-compact");
@@ -132,9 +133,9 @@ test.describe("Signature Pilot AI smoke tests", () => {
     await expect(page.locator('label:has-text("Layout") select')).toHaveValue("mobile-compact");
     await expect(page.getByText("Mobile Compact selected for better mobile email compatibility.")).toBeVisible();
 
-    await page.locator('label:has-text("Layout") select').selectOption("classic");
+    await page.locator('label:has-text("Layout") select').selectOption("executive");
     await page.reload({ waitUntil: "networkidle" });
-    await expect(page.locator('label:has-text("Layout") select')).toHaveValue("classic");
+    await expect(page.locator('label:has-text("Layout") select')).toHaveValue("executive");
     await expect(page.getByText("Mobile Compact selected for better mobile email compatibility.")).toHaveCount(0);
 
     await page.locator('label:has-text("Job title") input').fill("Senior Regional Partnerships Director");

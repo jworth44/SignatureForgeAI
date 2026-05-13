@@ -1,9 +1,13 @@
 const LAYOUT_META = {
+  executive: { name: "Executive", accentWeight: 700, label: "Schedule a strategy call" },
+  contractor: { name: "Contractor", accentWeight: 600, label: "Request a quote" },
+  minimal: { name: "Minimal", accentWeight: 500, label: "Connect" },
+  corporate: { name: "Corporate", accentWeight: 700, label: "Visit our website" },
+  "mobile-compact": { name: "Mobile Compact", accentWeight: 600, label: "Tap to connect" },
+  "premium-split": { name: "Corporate Split", accentWeight: 700, label: "Discover" },
   classic: { name: "Classic", accentWeight: 500, label: "Call" },
   modern: { name: "Modern", accentWeight: 600, label: "Connect" },
-  compact: { name: "Compact", accentWeight: 500, label: "Reach" },
-  "mobile-compact": { name: "Mobile Compact", accentWeight: 600, label: "Tap to connect" },
-  "premium-split": { name: "Premium Split Line", accentWeight: 700, label: "Discover" }
+  compact: { name: "Compact", accentWeight: 500, label: "Reach" }
 };
 
 const LOGO_SIZES = {
@@ -26,7 +30,7 @@ export function getDefaultDraft() {
     facebookUrl: "",
     instagramUrl: "",
     brandColor: "#2663ff",
-    layout: "classic",
+    layout: "minimal",
     layoutManuallySelected: false,
     layoutAutoSelected: false,
     tier: "free",
@@ -98,6 +102,7 @@ export function generateSignatureHtml({ draft, tier, includeBranding }) {
   const brandColor = normalizedColor(sanitized.brandColor);
   const contactRows = buildContactRows(sanitized);
   const socialRows = buildSocialRows(sanitized);
+  const layoutStyles = getLayoutStyles(sanitized.layout, brandColor);
   const logoMarkup = buildImageMarkup({
     source: sanitized.logoDataUrl || sanitized.photoDataUrl,
     alt: sanitized.companyName || sanitized.fullName,
@@ -208,12 +213,12 @@ export function generateSignatureHtml({ draft, tier, includeBranding }) {
       <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}">
         <tbody>
         <tr>
-          <td style="${cellResetStyle()}font-size:${sanitized.layout === "compact" ? 18 : 22}px;line-height:${sanitized.layout === "compact" ? 22 : 28}px;font-weight:700;color:#111827;padding:0 0 2px 0;">
+          <td style="${cellResetStyle()}font-size:${layoutStyles.nameSize}px;line-height:${layoutStyles.nameLine}px;font-weight:700;color:#111827;padding:${layoutStyles.nameSpacing};">
             ${escapeHtml(sanitized.fullName)}
           </td>
         </tr>
         <tr>
-          <td style="${cellResetStyle()}font-size:14px;line-height:20px;font-weight:${meta.accentWeight};color:${brandColor};padding:0 0 3px 0;">
+          <td style="${cellResetStyle()}font-size:${layoutStyles.titleSize}px;line-height:${layoutStyles.titleLine}px;font-weight:${meta.accentWeight};color:${layoutStyles.titleColor};padding:0 0 3px 0;">
             ${escapeHtml(buildTitleLine(sanitized))}
           </td>
         </tr>
@@ -221,7 +226,7 @@ export function generateSignatureHtml({ draft, tier, includeBranding }) {
         ${socialRows}
         <tr>
           <td style="${cellResetStyle()}padding-top:10px;font-size:12px;line-height:18px;color:#374151;">
-            <a href="${ensureProtocol(sanitized.website)}" style="color:${brandColor};text-decoration:none;font-weight:600;">${escapeHtml(sanitized.ctaText || meta.label)}</a>
+            <a href="${ensureProtocol(sanitized.website)}" style="color:${brandColor};text-decoration:none;font-weight:${layoutStyles.ctaWeight};">${escapeHtml(sanitized.ctaText || meta.label)}</a>
           </td>
         </tr>
         <tr>
@@ -243,7 +248,7 @@ function applyTierRules(draft) {
     return {
       ...draft,
       includeBranding: true,
-      layout: draft.layout === "mobile-compact" ? "mobile-compact" : "classic",
+      layout: draft.layout === "mobile-compact" ? "mobile-compact" : draft.layout === "minimal" ? "minimal" : "executive",
       logoSize: draft.logoSize === "custom" || draft.logoSize === "extra-large" ? "large" : draft.logoSize,
       customLogoWidth: normalizeCustomLogoWidth(draft.customLogoWidth),
       showDivider: false,
@@ -260,6 +265,62 @@ function applyTierRules(draft) {
 
 function buildTitleLine(draft) {
   return [draft.jobTitle, draft.companyName].filter(Boolean).join(" | ");
+}
+
+function getLayoutStyles(layout, brandColor) {
+  switch (layout) {
+    case "executive":
+      return {
+        nameSize: 22,
+        nameLine: 28,
+        titleSize: 14,
+        titleLine: 20,
+        titleColor: brandColor,
+        ctaWeight: 700,
+        nameSpacing: "0 0 2px 0"
+      };
+    case "contractor":
+      return {
+        nameSize: 21,
+        nameLine: 26,
+        titleSize: 13,
+        titleLine: 19,
+        titleColor: "#8f4f0f",
+        ctaWeight: 700,
+        nameSpacing: "0 0 4px 0"
+      };
+    case "corporate":
+    case "premium-split":
+      return {
+        nameSize: 22,
+        nameLine: 28,
+        titleSize: 13,
+        titleLine: 19,
+        titleColor: "#334155",
+        ctaWeight: 700,
+        nameSpacing: "0 0 3px 0"
+      };
+    case "minimal":
+      return {
+        nameSize: 19,
+        nameLine: 24,
+        titleSize: 12,
+        titleLine: 18,
+        titleColor: "#4b5563",
+        ctaWeight: 600,
+        nameSpacing: "0 0 4px 0"
+      };
+    default:
+      return {
+        nameSize: layout === "compact" ? 18 : 22,
+        nameLine: layout === "compact" ? 22 : 28,
+        titleSize: 14,
+        titleLine: 20,
+        titleColor: brandColor,
+        ctaWeight: 600,
+        nameSpacing: "0 0 2px 0"
+      };
+  }
 }
 
 function buildContactRows(draft) {

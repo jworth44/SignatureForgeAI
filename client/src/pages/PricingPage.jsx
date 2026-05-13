@@ -6,18 +6,18 @@ const PLANS = [
     name: "Free",
     price: "$0",
     copy: "Perfect for solo builders who want a clean signature fast.",
-    features: ["3 basic templates", "Manual editing", "Copy HTML", "Basic brand color", "Basic logo upload"]
+    features: ["Executive, Minimal, and Mobile Compact templates", "Guided copy-ready export", "Basic brand color", "Basic logo upload", "Signature Pilot AI branding included"]
   },
       {
         name: "Pro",
         price: "$12/month",
         copy: "Unlock premium layouts and AI-powered signature copy.",
     features: [
-      "Premium templates",
+      "Contractor and Corporate templates",
       "AI copy suggestions",
       "Advanced layout controls",
       "Multiple signatures",
-      "Remove SignatureForge branding",
+      "Remove Signature Pilot AI branding",
       "Enhanced logo and brand blending placeholder"
     ],
     featured: true
@@ -57,6 +57,33 @@ export default function PricingPage() {
             </Link>
           </article>
         ))}
+      </section>
+
+      <section className="panel">
+        <div className="section-intro">
+          <p className="eyebrow">Compare Tiers</p>
+          <h2>Know exactly what unlocks when you upgrade.</h2>
+        </div>
+        <div className="comparison-grid">
+          <div className="comparison-card">
+            <strong>Free</strong>
+            <p>Copy a polished branded signature and get moving fast.</p>
+            <ul className="feature-list">
+              <li>Executive, Minimal, and Mobile Compact templates</li>
+              <li>Branded copy-ready signature export</li>
+              <li>Basic logo upload and color control</li>
+            </ul>
+          </div>
+          <div className="comparison-card comparison-card-accent">
+            <strong>Pro</strong>
+            <p>Unlock cleaner exports, more layouts, and higher brand control.</p>
+            <ul className="feature-list">
+              <li>Contractor and Corporate templates</li>
+              <li>Unbranded export and raw HTML copy</li>
+              <li>Advanced logo sizing, divider, social links, and AI help</li>
+            </ul>
+          </div>
+        </div>
       </section>
     </div>
   );

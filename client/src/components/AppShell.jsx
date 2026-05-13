@@ -15,7 +15,7 @@ export default function AppShell({ children }) {
       <header className="topbar">
         <NavLink className="brand-lockup" to="/">
           <span className="brand-mark" aria-hidden="true">
-            SF
+            SP
           </span>
           <span>
             <strong>Signature Pilot AI</strong>

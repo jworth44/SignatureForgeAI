@@ -1,8 +1,23 @@
 import React from "react";
 
+const SAMPLE_OPTIONS = [
+  { key: "founder", label: "Startup Founder", copy: "Fast-moving SaaS founder sample", template: "Minimal" },
+  { key: "contractor", label: "Contractor", copy: "Service-first example with quote CTA", template: "Contractor" },
+  { key: "executive", label: "Executive", copy: "Boardroom-ready leadership example", template: "Executive" }
+];
+
+const TEMPLATE_OPTIONS = [
+  { value: "executive", label: "Executive", copy: "High-trust leadership signature", pro: false },
+  { value: "minimal", label: "Minimal", copy: "Clean and modern for startups", pro: false },
+  { value: "contractor", label: "Contractor", copy: "Built for service calls and quotes", pro: true },
+  { value: "corporate", label: "Corporate", copy: "Brand-forward team presentation", pro: true },
+  { value: "mobile-compact", label: "Mobile Compact", copy: "Best for narrow mobile email apps", pro: false }
+];
+
 const FIELD_SECTIONS = [
   {
     title: "Contact details",
+    description: "Start with the essentials your recipients click first.",
     fields: [
       ["fullName", "Full name"],
       ["jobTitle", "Job title"],
@@ -15,6 +30,7 @@ const FIELD_SECTIONS = [
   },
   {
     title: "Social links",
+    description: "Add trust-building destinations when Pro is enabled.",
     fields: [
       ["linkedinUrl", "LinkedIn URL"],
       ["facebookUrl", "Facebook URL"],
@@ -27,6 +43,7 @@ export default function SignatureForm({
   draft,
   effectiveLayout,
   showAutoLayoutNotice,
+  onApplySampleProfile,
   onFieldChange,
   onColorChange,
   onLayoutChange,
@@ -59,9 +76,66 @@ export default function SignatureForm({
         </label>
       </div>
 
+      <div className="form-section">
+        <div className="form-section-heading">
+          <div>
+            <h3>Start faster</h3>
+            <p className="support-copy">Load polished sample data, then tailor it to your brand.</p>
+          </div>
+        </div>
+        <div className="sample-grid">
+          {SAMPLE_OPTIONS.map((sample) => (
+            <button key={sample.key} className="sample-card" type="button" onClick={() => onApplySampleProfile(sample.key)}>
+              <strong>{sample.label}</strong>
+              <span>{sample.copy}</span>
+              <small>{sample.template} sample</small>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="form-section">
+        <div className="form-section-heading">
+          <div>
+            <h3>Choose a template</h3>
+            <p className="support-copy">Pick the look first, then refine the details below.</p>
+          </div>
+        </div>
+        <div className="template-grid">
+          {TEMPLATE_OPTIONS.map((template) => {
+            const locked = isFree && template.pro;
+            const active = effectiveLayout === template.value;
+            return (
+              <button
+                key={template.value}
+                className={`template-card ${active ? "template-card-active" : ""} ${locked ? "template-card-locked" : ""}`}
+                disabled={locked}
+                type="button"
+                onClick={() => onLayoutChange(template.value)}
+              >
+                <div className={`template-thumb template-thumb-${template.value}`}>
+                  <span className="template-thumb-bar" />
+                  <span className="template-thumb-line template-thumb-line-strong" />
+                  <span className="template-thumb-line" />
+                  <span className="template-thumb-line template-thumb-line-short" />
+                </div>
+                <strong>{template.label}</strong>
+                <span>{template.copy}</span>
+                <small>{locked ? "Pro template" : active ? "Selected" : "Available"}</small>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {FIELD_SECTIONS.map((section) => (
         <div key={section.title} className="form-section">
-          <h3>{section.title}</h3>
+          <div className="form-section-heading">
+            <div>
+              <h3>{section.title}</h3>
+              <p className="support-copy">{section.description}</p>
+            </div>
+          </div>
           <div className="field-grid">
             {section.fields.map(([key, label]) => {
               const locked = isFree && (key === "location" || key.endsWith("Url"));
@@ -78,7 +152,12 @@ export default function SignatureForm({
       ))}
 
       <div className="form-section">
-        <h3>Visual controls</h3>
+        <div className="form-section-heading">
+          <div>
+            <h3>Visual controls</h3>
+            <p className="support-copy">Tune spacing, logo size, and brand presentation without touching HTML.</p>
+          </div>
+        </div>
         <div className="field-grid">
           <label className="field">
             <span>Brand color</span>
@@ -88,15 +167,15 @@ export default function SignatureForm({
           <label className="field">
             <span>Layout</span>
             <select value={effectiveLayout} onChange={(event) => onLayoutChange(event.target.value)}>
-              <option value="classic">Classic</option>
+              <option value="executive">Executive</option>
+              <option value="minimal">Minimal</option>
+              <option disabled={isFree} value="contractor">Contractor</option>
+              <option disabled={isFree} value="corporate">Corporate</option>
               <option value="mobile-compact">Mobile Compact</option>
-              <option disabled={isFree} value="modern">Modern</option>
-              <option disabled={isFree} value="compact">Compact</option>
-              <option disabled={isFree} value="premium-split">Premium Split Line</option>
             </select>
             <small className="locked-copy">
               {isFree
-                ? "Free Mode includes Classic and Mobile Compact. Use Mobile Compact if your signature looks squeezed in mobile email apps."
+                ? "Free Mode includes Executive, Minimal, and Mobile Compact. Contractor and Corporate unlock with Pro."
                 : "Use Mobile Compact if your signature looks squeezed in mobile email apps."}
             </small>
             {showAutoLayoutNotice ? <small className="support-copy">Mobile Compact selected for better mobile email compatibility.</small> : null}
@@ -152,7 +231,12 @@ export default function SignatureForm({
       </div>
 
       <div className="form-section">
-        <h3>Brand assets</h3>
+        <div className="form-section-heading">
+          <div>
+            <h3>Brand assets</h3>
+            <p className="support-copy">Add your logo now. Profile photos and deeper brand blending stay in Pro.</p>
+          </div>
+        </div>
         <div className="upload-grid">
           <AssetUploader
             label="Logo upload"

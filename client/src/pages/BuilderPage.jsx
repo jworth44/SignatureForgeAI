@@ -8,78 +8,82 @@ const STORAGE_KEY = "signaturepilot.ai.draft";
 const VERSION_STORAGE_KEY = "signaturepilot.ai.versions";
 const MOBILE_LAYOUT_BREAKPOINT = 768;
 
-const SAMPLE_PROFILES = {
-  founder: {
-    fullName: "Jordan Wells",
-    jobTitle: "Founder & CEO",
+const STARTER_PROFILES = {
+  professional: {
+    jobTitle: "Client Services Lead",
     companyName: "Northlight Studio",
-    phone: "+1 (555) 123-4567",
-    email: "jordan@northlightstudio.com",
     website: "northlightstudio.com",
-    location: "Winnipeg, MB",
-    linkedinUrl: "https://linkedin.com/company/northlightstudio",
-    brandColor: "#2663ff",
-    layout: "minimal",
-    ctaText: "See our latest work"
+    ctaText: "Book a quick call",
+    disclaimer: "Please let me know the best time to follow up with next steps.",
+    layout: "professional-classic",
+    tone: "Professional",
+    industry: "General Professional",
+    goal: "Show credibility",
+    brandColor: "#2663ff"
+  },
+  senior_management: {
+    jobTitle: "Senior Management Consultant",
+    companyName: "Summit Ridge Advisory",
+    website: "summitridgeadvisory.com",
+    ctaText: "Schedule a leadership call",
+    disclaimer: "Availability for strategy sessions may vary based on current advisory engagements.",
+    layout: "executive-corporate",
+    tone: "Premium",
+    industry: "Finance / Insurance",
+    goal: "Show credibility",
+    brandColor: "#1d3557"
+  },
+  office_administration: {
+    jobTitle: "Office Administration Coordinator",
+    companyName: "Atlas Business Support",
+    website: "atlasbusinesssupport.com",
+    ctaText: "Send your request",
+    disclaimer: "Response times may vary depending on current office support volume.",
+    layout: "minimal-clean",
+    tone: "Professional",
+    industry: "General Professional",
+    goal: "Book calls",
+    brandColor: "#51667d"
   },
   contractor: {
-    fullName: "Mason Ortiz",
     jobTitle: "Licensed General Contractor",
     companyName: "Ortiz Build Co.",
-    phone: "+1 (555) 241-8801",
-    email: "mason@ortizbuildco.com",
     website: "ortizbuildco.com",
-    location: "Dallas, TX",
-    brandColor: "#d97706",
-    layout: "classic",
-    ctaText: "Request a project quote"
+    ctaText: "Request a project quote",
+    disclaimer: "Estimates and scope recommendations are confirmed after a project review.",
+    layout: "contractor-bold",
+    tone: "Contractor",
+    industry: "Contractor / Trades",
+    goal: "Get quotes",
+    brandColor: "#d97706"
   },
-  executive: {
-    fullName: "Avery Chen",
-    jobTitle: "VP, Strategic Partnerships",
-    companyName: "Summit Ridge Capital",
-    phone: "+1 (555) 880-4112",
-    email: "avery@summitridgecapital.com",
-    website: "summitridgecapital.com",
-    location: "Chicago, IL",
-    linkedinUrl: "https://linkedin.com/company/summitridgecapital",
-    brandColor: "#0f172a",
-    layout: "corporate",
-    ctaText: "Schedule an introduction"
+  entrepreneur: {
+    jobTitle: "Founder & Operator",
+    companyName: "Northlight Venture Lab",
+    website: "northlightventurelab.com",
+    ctaText: "See what we're building",
+    disclaimer: "Partnership timelines and availability may change as the business evolves.",
+    layout: "tech-saas",
+    tone: "Friendly",
+    industry: "Tech / SaaS",
+    goal: "Drive website visits",
+    brandColor: "#5b5bd6"
   }
 };
 
 const TEMPLATE_OPTIONS = [
-  {
-    value: "classic",
-    label: "Professional Classic",
-    description: "Balanced, traditional, logo-left and easy to scan.",
-    pro: false
-  },
-  {
-    value: "corporate",
-    label: "Corporate",
-    description: "Structured, executive, and stronger for leadership roles.",
-    pro: true
-  },
-  {
-    value: "minimal",
-    label: "Minimal",
-    description: "Lighter and cleaner with softer branding emphasis.",
-    pro: false
-  },
-  {
-    value: "premium-split",
-    label: "Premium",
-    description: "Refined spacing with a more polished premium finish.",
-    pro: true
-  },
-  {
-    value: "mobile-compact",
-    label: "Mobile Compact",
-    description: "Stacked, centered, and safer for mobile email apps.",
-    pro: false
-  }
+  { value: "professional-classic", label: "Professional Classic", description: "Balanced, traditional, and easy to scan.", pro: false },
+  { value: "executive-corporate", label: "Executive Corporate", description: "Structured leadership layout with stronger hierarchy.", pro: true },
+  { value: "minimal-clean", label: "Minimal Clean", description: "Lighter, cleaner, and content-first.", pro: false },
+  { value: "premium-consultant", label: "Premium Consultant", description: "Refined spacing with polished consultant styling.", pro: true },
+  { value: "contractor-bold", label: "Contractor Bold", description: "Service-first layout with stronger CTA emphasis.", pro: false },
+  { value: "real-estate", label: "Real Estate", description: "Listing-friendly structure with stronger profile framing.", pro: true },
+  { value: "legal-finance", label: "Legal / Finance", description: "Credibility-forward layout for advisory and legal roles.", pro: true },
+  { value: "health-medical", label: "Health / Medical", description: "Calm stacked layout for care-focused communication.", pro: true },
+  { value: "creative-designer", label: "Creative / Designer", description: "Portfolio-ready layout with more visual contrast.", pro: true },
+  { value: "tech-saas", label: "Tech / SaaS", description: "Modern product-forward layout with compact contact chips.", pro: true },
+  { value: "mobile-compact", label: "Mobile Compact", description: "Stacked and centered for narrow mobile email clients.", pro: false },
+  { value: "signature-card", label: "Signature Card", description: "Card-style presentation with contained profile framing.", pro: true }
 ];
 
 const DETAILS_FIELDS = [
@@ -222,7 +226,7 @@ export default function BuilderPage() {
     return () => window.removeEventListener("resize", syncLayoutForScreenWidth);
   }, []);
 
-  const artifacts = useMemo(() => generateSignatureArtifacts(draft), [draft]);
+  const artifacts = useMemo(() => generateSignatureArtifacts({ ...draft, renderMode: previewDevice }), [draft, previewDevice]);
   const isFree = artifacts.effectiveDraft.tier === "free";
   const healthScore = useMemo(() => evaluateSignatureHealth(artifacts.effectiveDraft), [artifacts.effectiveDraft]);
   const compatibilityChecklist = useMemo(() => buildCompatibilityChecklist(artifacts.effectiveDraft), [artifacts.effectiveDraft]);
@@ -266,30 +270,65 @@ export default function BuilderPage() {
   }
 
   function applySampleProfile(profileKey) {
-    const profile = SAMPLE_PROFILES[profileKey];
+    const profile = STARTER_PROFILES[profileKey];
     if (!profile) {
       return;
     }
 
-    setDraft((current) => ({
+    setDraft((current) => {
+      const nextLayout =
+        current.tier === "free" && !["professional-classic", "minimal-clean", "contractor-bold", "mobile-compact"].includes(profile.layout)
+          ? "professional-classic"
+          : profile.layout;
+
+      return {
+        ...current,
+        jobTitle: current.jobTitle?.trim() ? current.jobTitle : profile.jobTitle,
+        companyName: current.companyName?.trim() ? current.companyName : profile.companyName,
+        website: current.website?.trim() ? current.website : profile.website,
+        ctaText: profile.ctaText,
+        disclaimer: profile.disclaimer,
+        brandColor: profile.brandColor,
+        layout: nextLayout,
+        templateVariant: 1,
+        layoutManuallySelected: true,
+        layoutAutoSelected: false
+      };
+    });
+    setSmartSetup((current) => ({
       ...current,
-      ...profile,
-      layout:
-        current.tier === "free" && !["classic", "minimal", "mobile-compact"].includes(profile.layout)
-          ? "classic"
-          : profile.layout,
-      layoutManuallySelected: true,
-      layoutAutoSelected: false
+      tone: profile.tone,
+      industry: profile.industry,
+      goal: profile.goal
     }));
+    setCopyMessage("Starter applied without replacing your existing contact details.");
+    setCopyState("success");
   }
 
   function handleLayoutChange(value) {
     setDraft((current) => ({
       ...current,
       layout: value,
+      templateVariant: current.layout === value ? current.templateVariant : 1,
       layoutManuallySelected: true,
       layoutAutoSelected: false
     }));
+  }
+
+  function handleRegenerateTemplate() {
+    setDraft((current) => ({
+      ...current,
+      templateVariant: current.templateVariant >= 12 ? 1 : current.templateVariant + 1
+    }));
+  }
+
+  function handleRevertTemplate() {
+    setDraft((current) => ({
+      ...current,
+      templateVariant: 1
+    }));
+    setCopyMessage("Template reverted to Variant 1.");
+    setCopyState("success");
   }
 
   async function readFileAsDataUrl(targetField, file) {
@@ -493,23 +532,32 @@ export default function BuilderPage() {
           <div className="generator-card-header">
             <div>
               <h3>Start faster</h3>
-              <p className="support-copy">Load a polished sample, then personalize it.</p>
+              <p className="support-copy">Load a polished starter without replacing your existing contact details.</p>
             </div>
           </div>
           <div className="generator-sample-grid">
-            <button className="generator-sample-card" type="button" onClick={() => applySampleProfile("founder")}>
-              <strong>Startup Founder</strong>
-              <span>Modern SaaS founder example</span>
+            <button className="generator-sample-card" type="button" onClick={() => applySampleProfile("professional")}>
+              <strong>Professional</strong>
+              <span>Balanced business-ready starter</span>
+            </button>
+            <button className="generator-sample-card" type="button" onClick={() => applySampleProfile("senior_management")}>
+              <strong>Senior Management</strong>
+              <span>Leadership-focused executive starter</span>
+            </button>
+            <button className="generator-sample-card" type="button" onClick={() => applySampleProfile("office_administration")}>
+              <strong>Office Administration</strong>
+              <span>Clean internal support starter</span>
             </button>
             <button className="generator-sample-card" type="button" onClick={() => applySampleProfile("contractor")}>
               <strong>Contractor</strong>
-              <span>Quote-focused service example</span>
+              <span>Quote-focused service starter</span>
             </button>
-            <button className="generator-sample-card" type="button" onClick={() => applySampleProfile("executive")}>
-              <strong>Executive</strong>
-              <span>Corporate leadership example</span>
+            <button className="generator-sample-card" type="button" onClick={() => applySampleProfile("entrepreneur")}>
+              <strong>Entrepreneur</strong>
+              <span>Fast-moving founder starter</span>
             </button>
           </div>
+          {copyMessage.includes("Starter applied") ? <p className="copy-feedback copy-feedback-success">{copyMessage}</p> : null}
         </section>
       </div>
     );
@@ -568,6 +616,7 @@ export default function BuilderPage() {
   }
 
   function renderTemplatesStep() {
+    const selectedTemplateLabel = lookupTemplateLabel(artifacts.effectiveDraft.layout);
     return (
       <div className="generator-step-stack">
         <section className="generator-card">
@@ -601,17 +650,36 @@ export default function BuilderPage() {
                     </div>
                   </div>
                   <p className="support-copy">{template.description}</p>
-                  <button
-                    className={`button ${active ? "button-primary" : locked ? "button-locked" : "button-secondary"}`}
-                    disabled={locked}
-                    type="button"
-                    onClick={() => handleLayoutChange(template.value)}
-                  >
-                    {locked ? "Pro style" : active ? "Selected" : "Use this style"}
-                  </button>
+                  <div className="generator-button-row">
+                    <button
+                      className={`button ${active ? "button-primary" : locked ? "button-locked" : "button-secondary"}`}
+                      disabled={locked}
+                      type="button"
+                      onClick={() => handleLayoutChange(template.value)}
+                    >
+                      {locked ? "Pro style" : active ? "Selected" : "Use this style"}
+                    </button>
+                  </div>
                 </article>
               );
             })}
+          </div>
+
+          <div className="generator-template-toolbar">
+            <div>
+              <strong>{artifacts.effectiveDraft.variantLabel}</strong>
+              <p className="support-copy">
+                Selected family: {selectedTemplateLabel}. Regenerate to cycle through the 12 built-in structure variants.
+              </p>
+            </div>
+            <div className="generator-button-row">
+              <button className="button button-secondary" type="button" onClick={handleRegenerateTemplate}>
+                Regenerate layout
+              </button>
+              <button className="button button-ghost" type="button" onClick={handleRevertTemplate}>
+                Revert template
+              </button>
+            </div>
           </div>
         </section>
       </div>
@@ -619,6 +687,7 @@ export default function BuilderPage() {
   }
 
   function renderStylesStep() {
+    const selectedTemplateLabel = lookupTemplateLabel(artifacts.effectiveDraft.layout);
     return (
       <div className="generator-step-stack">
         <section className="generator-card">
@@ -646,6 +715,9 @@ export default function BuilderPage() {
               </select>
               {draft.layout === "mobile-compact" && draft.layoutAutoSelected ? (
                 <small className="support-copy">Mobile Compact selected for better mobile email compatibility.</small>
+              ) : null}
+              {artifacts.effectiveDraft.previewUsesMobileCompact ? (
+                <small className="support-copy">This preview is temporarily showing Mobile Compact for cleaner phone-safe rendering.</small>
               ) : null}
             </label>
 
@@ -710,6 +782,11 @@ export default function BuilderPage() {
               <span>Disclaimer</span>
               <textarea rows="3" value={draft.disclaimer} onChange={(event) => updateField("disclaimer", event.target.value)} />
             </label>
+          </div>
+
+          <div className="generator-inline-note">
+            <strong>{artifacts.effectiveDraft.variantLabel}</strong>
+            <span>{selectedTemplateLabel} remains the selected family for export and copy actions.</span>
           </div>
 
           <div className="generator-button-row">
@@ -1076,11 +1153,18 @@ function UploadAssetCard({ description, disabled = false, inputId, label, onFile
 function buildTemplatePreviewDraft(template, draft) {
   const fallback = getDefaultDraft();
   const previewBase = {
-    classic: { brandColor: "#2663ff", logoSize: "medium", showDivider: false, includeBranding: false },
-    corporate: { brandColor: "#0f172a", logoSize: "medium", showDivider: true, includeBranding: false },
-    minimal: { brandColor: "#64748b", logoSize: "small", showDivider: false, includeBranding: false, logoShape: "circle" },
-    "premium-split": { brandColor: "#7c3aed", logoSize: "medium", showDivider: true, includeBranding: false },
-    "mobile-compact": { brandColor: "#0f766e", logoSize: "medium", showDivider: false, includeBranding: false }
+    "professional-classic": { brandColor: "#2663ff", logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
+    "executive-corporate": { brandColor: "#163a8a", logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
+    "minimal-clean": { brandColor: "#64748b", logoSize: "small", showDivider: false, includeBranding: false, logoShape: "circle", templateVariant: 1 },
+    "premium-consultant": { brandColor: "#6d4aff", logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
+    "contractor-bold": { brandColor: "#d97706", logoSize: "large", showDivider: false, includeBranding: false, templateVariant: 1 },
+    "real-estate": { brandColor: "#0f766e", logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
+    "legal-finance": { brandColor: "#1f3b73", logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
+    "health-medical": { brandColor: "#0d9488", logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
+    "creative-designer": { brandColor: "#7c3aed", logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
+    "tech-saas": { brandColor: "#4f46e5", logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
+    "mobile-compact": { brandColor: "#0f766e", logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
+    "signature-card": { brandColor: "#8b6dff", logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 }
   };
 
   return {
@@ -1088,15 +1172,19 @@ function buildTemplatePreviewDraft(template, draft) {
     ...draft,
     ...(previewBase[template.value] || {}),
     tier: template.pro ? "pro" : draft.tier,
-    layout: template.value
+    layout: template.value,
+    templateVariant: 1,
+    renderMode: "desktop"
   };
 }
 
 function resolveRecommendedLayout(draft, recommendedLayout) {
-  if (draft.tier !== "pro" && ["corporate", "premium-split"].includes(recommendedLayout)) {
-    return "classic";
+  const normalized = TEMPLATE_OPTIONS.find((template) => template.value === recommendedLayout)?.value || "professional-classic";
+  const isLocked = draft.tier !== "pro" && TEMPLATE_OPTIONS.find((template) => template.value === normalized)?.pro;
+  if (isLocked) {
+    return "professional-classic";
   }
-  return recommendedLayout;
+  return normalized;
 }
 
 function lookupTemplateLabel(layout) {
@@ -1106,67 +1194,67 @@ function lookupTemplateLabel(layout) {
 function buildSmartSetupRecommendation(draft, smartSetup) {
   const industryMap = {
     "Contractor / Trades": {
-      layout: "classic",
+      layout: "contractor-bold",
       titleLine: draft.jobTitle || "Licensed General Contractor",
       ctaText: "Request a project quote",
       disclaimer: "Estimates and site recommendations are confirmed after a project review."
     },
     "Safety Consulting": {
-      layout: "corporate",
+      layout: "executive-corporate",
       titleLine: draft.jobTitle || "HSE Director",
       ctaText: "Book a compliance call",
       disclaimer: "Safety recommendations are tailored after a documented assessment."
     },
     "Real Estate": {
-      layout: "premium-split",
+      layout: "real-estate",
       titleLine: draft.jobTitle || "Real Estate Advisor",
       ctaText: "View current listings",
       disclaimer: "Availability and listing details may change without notice."
     },
     "Law / Legal": {
-      layout: "corporate",
+      layout: "legal-finance",
       titleLine: draft.jobTitle || "Legal Counsel",
       ctaText: "Schedule a confidential consultation",
       disclaimer: "This email does not create a solicitor-client relationship."
     },
     "Finance / Insurance": {
-      layout: "corporate",
+      layout: "legal-finance",
       titleLine: draft.jobTitle || "Senior Advisor",
       ctaText: "Review coverage options",
       disclaimer: "Coverage and financial products are subject to review and approval."
     },
     "Medical / Health": {
-      layout: "minimal",
+      layout: "health-medical",
       titleLine: draft.jobTitle || "Patient Care Coordinator",
       ctaText: "Book an appointment",
       disclaimer: "Please do not send urgent medical concerns by email."
     },
     "Fitness / Coaching": {
-      layout: "minimal",
+      layout: "minimal-clean",
       titleLine: draft.jobTitle || "Performance Coach",
       ctaText: "Start your program",
       disclaimer: "Results vary based on commitment, training history, and health status."
     },
     "Tech / SaaS": {
-      layout: "minimal",
+      layout: "tech-saas",
       titleLine: draft.jobTitle || "Founder & CEO",
       ctaText: "See the platform in action",
       disclaimer: "Timelines and roadmap details may evolve as the product grows."
     },
     "Retail / Ecommerce": {
-      layout: "classic",
+      layout: "signature-card",
       titleLine: draft.jobTitle || "Brand Manager",
       ctaText: "Shop the latest collection",
       disclaimer: "Inventory and promotional availability may change without notice."
     },
     "Creative / Design": {
-      layout: "premium-split",
+      layout: "creative-designer",
       titleLine: draft.jobTitle || "Creative Director",
       ctaText: "Review our latest work",
       disclaimer: "Project timelines and availability depend on current production capacity."
     },
     "General Professional": {
-      layout: "classic",
+      layout: "professional-classic",
       titleLine: draft.jobTitle || "Director",
       ctaText: "Book a quick introduction",
       disclaimer: "Response timelines may vary based on current client commitments."
@@ -1190,7 +1278,7 @@ function buildSmartSetupRecommendation(draft, smartSetup) {
 
   return {
     ...base,
-    layout: smartSetup.goal === "Drive website visits" && base.layout === "classic" ? "minimal" : base.layout,
+    layout: smartSetup.goal === "Drive website visits" && base.layout === "professional-classic" ? "tech-saas" : base.layout,
     ctaText:
       smartSetup.goal === "Drive website visits"
         ? "Visit our website"
@@ -1273,7 +1361,12 @@ function buildPolishRecommendation(draft) {
     companyName: cleanedCompany,
     ctaText: polishCta(draft.ctaText),
     disclaimer: shortenCopy(draft.disclaimer, 82),
-    layout: compactTitleLength > 44 ? "mobile-compact" : draft.layout === "classic" ? "minimal" : draft.layout,
+    layout:
+      compactTitleLength > 44
+        ? "mobile-compact"
+        : draft.layout === "professional-classic"
+          ? "minimal-clean"
+          : draft.layout,
     note:
       compactTitleLength > 44
         ? "This pass shortens the top line and recommends Mobile Compact for cleaner phone rendering."

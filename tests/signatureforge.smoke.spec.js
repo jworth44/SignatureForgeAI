@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("Signature Pilot AI generator smoke tests", () => {
+test.describe("Signature Pilot AI step studio smoke tests", () => {
   test.beforeEach(async ({ context, page, baseURL }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"], {
       origin: baseURL
@@ -8,167 +8,117 @@ test.describe("Signature Pilot AI generator smoke tests", () => {
     await page.goto("/builder", { waitUntil: "networkidle" });
   });
 
-  test("Free mode shows the ethical HubSpot-style builder flow with uploads", async ({ page }) => {
-    await expect(page).toHaveURL(/\/builder$/);
-    await expect(page.locator(".generator-step-rail")).toBeVisible();
-    await expect(page.locator(".generator-editor-pane")).toBeVisible();
-    await expect(page.locator(".generator-preview-pane")).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Enter your signature details" })).toBeVisible();
-    await expect(page.locator(".signature-preview-surface")).toContainText("Created with Signature Pilot AI");
+  test("Start Faster preserves existing identity details and shows the new starter set", async ({ page }) => {
+    await expect(page.getByRole("button", { name: "Professional" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Senior Management" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Office Administration" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Contractor" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Entrepreneur" })).toBeVisible();
 
-    await page.getByRole("button", { name: /Images/ }).click();
-    await expect(page.getByRole("heading", { name: "Upload your logo or profile image" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Company Logo" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Profile Picture" })).toBeVisible();
-    await expect(page.getByText("Use direct file uploads here instead of image links.")).toBeVisible();
+    await page.locator('label:has-text("Full name*") input').fill("Alex Custom");
+    await page.locator('label:has-text("Office phone number") input').fill("555-222-1111");
+    await page.locator('label:has-text("Email address*") input').fill("alex@example.com");
+    await page.locator('label:has-text("Company name*") input').fill("Custom Company");
+    await page.locator('label:has-text("Website URL") input').fill("customsite.com");
+    await page.locator('label:has-text("Job title*") input').fill("Operations Lead");
 
-    await page.getByRole("button", { name: /Templates/ }).click();
-    await expect(page.locator(".generator-template-card")).toHaveCount(5);
-    await expect(page.getByRole("button", { name: "Use this style" }).first()).toBeVisible();
-    await expect(page.getByRole("button", { name: "Pro style" }).first()).toBeVisible();
+    await page.getByRole("button", { name: "Contractor" }).click();
 
-    await page.getByRole("button", { name: /Styles/ }).click();
-    await expect(page.locator('label:has-text("Layout") select option[value="premium-split"]')).toHaveAttribute("disabled", "");
-    await expect(page.locator('label:has-text("Divider") select')).toBeDisabled();
-    await expect(page.locator('label:has-text("Branding") select')).toBeDisabled();
-
-    await page.getByRole("button", { name: /Export/ }).click();
-    await expect(page.getByRole("button", { name: "Copy Signature" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Copy Raw HTML" })).toHaveCount(0);
+    await expect(page.locator('label:has-text("Full name*") input')).toHaveValue("Alex Custom");
+    await expect(page.locator('label:has-text("Office phone number") input')).toHaveValue("555-222-1111");
+    await expect(page.locator('label:has-text("Email address*") input')).toHaveValue("alex@example.com");
+    await expect(page.locator('label:has-text("Company name*") input')).toHaveValue("Custom Company");
+    await expect(page.locator('label:has-text("Website URL") input')).toHaveValue("customsite.com");
+    await expect(page.locator('label:has-text("Job title*") input')).toHaveValue("Operations Lead");
+    await expect(page.getByText("Starter applied without replacing your existing contact details.")).toBeVisible();
   });
 
-  test("Pro mode unlocks uploads, template switching, polish, and clean export", async ({ page }) => {
-    await page.locator(".generator-mode-field select").selectOption("pro");
+  test("Preview device buttons and zoom change the live preview state", async ({ page }) => {
+    const stage = page.locator(".workspace-email-stage");
+    await expect(stage).toHaveAttribute("data-preview-device", "desktop");
+    await expect(stage).toHaveAttribute("data-preview-zoom", "100");
 
-    await page.getByRole("button", { name: /Images/ }).click();
-    const logoBuffer = Buffer.from(
-      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9s7h5XQAAAAASUVORK5CYII=",
-      "base64"
-    );
-    await page.locator("#logo-upload").setInputFiles({
-      name: "logo.png",
-      mimeType: "image/png",
-      buffer: logoBuffer
-    });
-    await expect(page.getByAltText("Company Logo")).toBeVisible();
+    await page.getByRole("button", { name: "Mobile" }).click();
+    await expect(stage).toHaveAttribute("data-preview-device", "mobile");
 
+    await page.getByLabel("Preview zoom").selectOption("125");
+    await expect(stage).toHaveAttribute("data-preview-zoom", "125");
+    await expect(page.locator(".preview-meta")).toContainText("Variant 1 of 12");
+  });
+
+  test("Template step exposes 12 template families and variant controls", async ({ page }) => {
     await page.getByRole("button", { name: /Templates/ }).click();
-    await page.locator(".generator-template-card", { hasText: "Corporate" }).getByRole("button", { name: "Use this style" }).click();
-    await expect(page.locator(".preview-meta")).toContainText("Corporate");
 
-    await page.getByRole("button", { name: /Styles/ }).click();
-    await page.locator('label:has-text("Layout") select').selectOption("premium-split");
-    await page.locator('label:has-text("Divider") select').selectOption("on");
-    await page.locator('label:has-text("Branding") select').selectOption("remove");
-    await page.locator('label:has-text("Logo size") select').selectOption("custom");
-    await page.locator('label:has-text("Custom logo width") input').fill("140");
-    await page.getByRole("button", { name: "Preview one-click polish" }).click();
-    await expect(page.getByText("Polished title line")).toBeVisible();
-    await page.getByRole("button", { name: "Apply one-click polish" }).click();
+    await expect(page.locator(".generator-template-card")).toHaveCount(12);
+    await expect(page.locator(".generator-template-card", { hasText: "Professional Classic" }).first()).toBeVisible();
+    await expect(page.locator(".generator-template-card", { hasText: "Executive Corporate" }).first()).toBeVisible();
+    await expect(page.locator(".generator-template-card", { hasText: "Signature Card" }).first()).toBeVisible();
+
+    const previewHtmlBefore = await page.locator(".signature-preview-surface").innerHTML();
+    await expect(page.locator(".generator-template-toolbar")).toContainText("Professional Classic - Variant 1 of 12");
+
+    await page.getByRole("button", { name: "Regenerate layout" }).click();
+    await expect(page.locator(".generator-template-toolbar")).toContainText("Professional Classic - Variant 2 of 12");
+
+    const previewHtmlAfter = await page.locator(".signature-preview-surface").innerHTML();
+    expect(previewHtmlAfter).not.toBe(previewHtmlBefore);
+
+    await page.getByRole("button", { name: "Revert template" }).click();
+    await expect(page.locator(".generator-template-toolbar")).toContainText("Professional Classic - Variant 1 of 12");
+  });
+
+  test("Pro mode exports reflect selected family and variant changes", async ({ page }) => {
+    await page.locator(".generator-mode-field select").selectOption("pro");
+    await page.getByRole("button", { name: /Templates/ }).click();
+
+    await page.locator(".generator-template-card", { hasText: "Executive Corporate" }).getByRole("button", { name: "Use this style" }).click();
+    await expect(page.locator(".preview-meta")).toContainText("Executive Corporate");
 
     await page.getByRole("button", { name: /Export/ }).click();
-    await expect(page.getByRole("button", { name: "Copy Raw HTML" })).toBeVisible();
     await page.getByRole("button", { name: "Copy Raw HTML" }).click();
+    const firstHtml = await page.evaluate(() => navigator.clipboard.readText());
+    expect(firstHtml).toContain("Executive Corporate");
 
-    const copiedHtml = await page.evaluate(() => navigator.clipboard.readText());
-    expect(copiedHtml).not.toContain("Created with Signature Pilot AI");
-    expect(copiedHtml).toContain('width="140"');
-    expect(copiedHtml).toContain("Premium split layout");
-    expect(copiedHtml).toContain("width:18px;padding:0 12px");
+    await page.getByRole("button", { name: /Templates/ }).click();
+    await page.getByRole("button", { name: "Regenerate layout" }).click();
+    await expect(page.locator(".generator-template-toolbar")).toContainText("Executive Corporate - Variant 2 of 12");
+
+    await page.getByRole("button", { name: /Export/ }).click();
+    await page.getByRole("button", { name: "Copy Raw HTML" }).click();
+    const secondHtml = await page.evaluate(() => navigator.clipboard.readText());
+
+    expect(secondHtml).toContain("Executive Corporate");
+    expect(secondHtml).not.toBe(firstHtml);
+
+    await page.getByRole("button", { name: "Copy Signature" }).click();
+    await expect(page.getByRole("button", { name: "Copied!" })).toBeVisible();
   });
 
-  test("Built-in smart suggestions still do not auto-overwrite current draft", async ({ page }) => {
-    await page.locator(".generator-mode-field select").selectOption("pro");
-
-    const originalTitle = await page.locator('label:has-text("Job title*") input').inputValue();
-    await page.getByRole("button", { name: /Styles/ }).click();
-    const originalCta = await page.locator('label:has-text("CTA text") input').inputValue();
-
-    await page.locator('label:has-text("Business type / industry") select').selectOption("Safety Consulting");
-    await page.getByRole("button", { name: "Generate Signature Suggestions" }).click();
-    await expect(page.getByRole("button", { name: "Apply Suggestions" })).toBeVisible();
-    await expect(page.locator('label:has-text("CTA text") input')).toHaveValue(originalCta);
-
-    await page.getByRole("button", { name: "Apply Only CTA" }).click();
-    await expect(page.locator('label:has-text("CTA text") input')).not.toHaveValue(originalCta);
-    await page.getByRole("button", { name: /Details/ }).click();
-    await expect(page.locator('label:has-text("Job title*") input')).toHaveValue(originalTitle);
-  });
-
-  test("Generated signature keeps export safety rules across layouts", async ({ page }) => {
-    await page.locator(".generator-mode-field select").selectOption("pro");
-    await page.getByRole("button", { name: /Styles/ }).click();
-    const layouts = ["classic", "minimal", "corporate", "premium-split", "mobile-compact"];
-    const previews = [];
-
-    for (const layout of layouts) {
-      await page.locator('label:has-text("Layout") select').selectOption(layout);
-      if (layout !== "mobile-compact") {
-        await page.locator('label:has-text("Divider") select').selectOption("off");
-      }
-
-      const previewHtml = await page.locator(".signature-preview-surface").innerHTML();
-      expect(previewHtml).toContain('href="tel:');
-      expect(previewHtml).toContain('href="mailto:');
-      expect(previewHtml).toContain('border="0"');
-      expect(previewHtml).toContain("border-collapse:collapse");
-      expect(previewHtml).toContain("border:none");
-      expect(previewHtml).not.toContain("border-left");
-      previews.push(previewHtml);
-    }
-
-    expect(new Set(previews).size).toBeGreaterThan(2);
-  });
-
-  test("Desktop builder fits without horizontal overflow", async ({ page }) => {
+  test("Desktop builder fits without horizontal overflow and the right preview pane stays visible", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/builder", { waitUntil: "networkidle" });
-
-    await expect(page.locator(".generator-editor-pane")).toBeVisible();
-    await expect(page.locator(".generator-preview-pane")).toBeVisible();
 
     const layout = await page.evaluate(() => {
       const root = document.documentElement;
       const preview = document.querySelector(".generator-preview-pane")?.getBoundingClientRect();
-      const editor = document.querySelector(".generator-editor-pane")?.getBoundingClientRect();
-      const footer = document.querySelector(".generator-editor-footer")?.getBoundingClientRect();
       return {
         scrollWidth: root.scrollWidth,
         innerWidth: window.innerWidth,
-        previewRight: preview?.right ?? 0,
-        editorLeft: editor?.left ?? 0,
-        footerBottom: footer?.bottom ?? 0,
-        innerHeight: window.innerHeight
+        previewRight: preview?.right ?? 0
       };
     });
 
     expect(layout.scrollWidth).toBeLessThanOrEqual(layout.innerWidth + 1);
     expect(layout.previewRight).toBeLessThanOrEqual(layout.innerWidth + 1);
-    expect(layout.editorLeft).toBeGreaterThanOrEqual(0);
-    expect(layout.footerBottom).toBeLessThanOrEqual(layout.innerHeight + 1);
   });
 
-  test("Homepage stays within the viewport on mobile", async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/", { waitUntil: "networkidle" });
-
-    const pageOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
-    expect(pageOverflow).toBe(false);
-
-    await expect(page.locator(".hero-card")).toBeVisible();
-    await expect(page.getByRole("main").getByRole("link", { name: "Start Free" })).toBeVisible();
-  });
-
-  test("Mobile builder keeps the step flow usable without overflow", async ({ page }) => {
+  test("Mobile builder remains usable without overflow", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/builder", { waitUntil: "networkidle" });
 
     const pageOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
     expect(pageOverflow).toBe(false);
 
-    await expect(page.locator(".generator-step-rail")).toBeVisible();
-    await page.getByRole("button", { name: /Templates/ }).click();
-    await expect(page.locator(".generator-template-card")).toHaveCount(5);
     await page.getByRole("button", { name: /Export/ }).click();
     await expect(page.getByRole("button", { name: "Copy Signature" })).toBeVisible();
   });

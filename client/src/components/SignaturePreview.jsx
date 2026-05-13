@@ -9,10 +9,15 @@ export default function SignaturePreview({
   onPreviewZoomChange,
   onPreviewDeviceChange
 }) {
-  const artifacts = useMemo(() => generateSignatureArtifacts(draft), [draft]);
+  const artifacts = useMemo(() => generateSignatureArtifacts({ ...draft, renderMode: previewDevice }), [draft, previewDevice]);
   const layoutMeta = getLayoutMeta(artifacts.effectiveDraft.layout);
   const zoomFactor = Number(previewZoom) / 100;
-  const previewShellMaxWidth = previewDevice === "mobile" ? Math.round(390 * zoomFactor) : Math.round(1080 * zoomFactor);
+  const previewShellMaxWidth = previewDevice === "mobile" ? Math.round(360 * zoomFactor) : Math.round(960 * zoomFactor);
+  const previewScaleStyle = {
+    transform: `scale(${zoomFactor})`,
+    transformOrigin: previewDevice === "mobile" ? "top center" : "top left",
+    width: `${100 / zoomFactor}%`
+  };
 
   return (
     <section className="workspace-preview-shell">
@@ -23,7 +28,7 @@ export default function SignaturePreview({
             <h2>Live email preview</h2>
           </div>
           <div className="workspace-preview-badges">
-            <span className="tier-pill">{layoutMeta.name}</span>
+            <span className="tier-pill">{artifacts.effectiveDraft.variantLabel}</span>
             <span className={`tier-pill ${effectiveDraft.tier === "pro" ? "tier-pill-pro" : ""}`}>
               {effectiveDraft.tier === "pro" ? "Pro mode" : "Free mode"}
             </span>
@@ -51,10 +56,10 @@ export default function SignaturePreview({
           <label className="workspace-zoom-select">
             <span>Zoom</span>
             <select aria-label="Preview zoom" value={previewZoom} onChange={(event) => onPreviewZoomChange(event.target.value)}>
-              <option value="80">80%</option>
+              <option value="75">75%</option>
               <option value="90">90%</option>
               <option value="100">100%</option>
-              <option value="110">110%</option>
+              <option value="125">125%</option>
             </select>
           </label>
         </div>
@@ -62,12 +67,18 @@ export default function SignaturePreview({
 
       <div className="preview-meta">
         <span>{layoutMeta.name}</span>
+        <span>{`Variant ${artifacts.effectiveDraft.templateVariant} of 12`}</span>
         <span>{artifacts.effectiveDraft.showDivider ? "Divider on" : "Divider off"}</span>
         <span>No visible borders</span>
         <span>{artifacts.includeBranding ? "Signature Pilot AI branding included" : "Branding removed"}</span>
+        {artifacts.effectiveDraft.previewUsesMobileCompact ? <span>Mobile Compact recommended for this preview</span> : null}
       </div>
 
-      <div className={`workspace-email-stage workspace-email-stage-${previewDevice}`}>
+      <div
+        className={`workspace-email-stage workspace-email-stage-${previewDevice}`}
+        data-preview-device={previewDevice}
+        data-preview-zoom={previewZoom}
+      >
         <div className="workspace-email-shell" style={{ maxWidth: `${previewShellMaxWidth}px` }}>
           <div className="workspace-email-header">
             <div className="workspace-email-row">
@@ -88,7 +99,7 @@ export default function SignaturePreview({
             <p>Hi there,</p>
             <p>I wanted to send over a quick follow-up with the contact details and next step link below.</p>
             <p>Best regards,</p>
-            <div className="workspace-preview-scale">
+            <div className="workspace-preview-scale" style={previewScaleStyle}>
               <div className="signature-preview-surface" dangerouslySetInnerHTML={{ __html: artifacts.previewHtml }} />
             </div>
           </div>

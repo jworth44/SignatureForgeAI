@@ -17,7 +17,7 @@ const INDUSTRY_OPTIONS = [
   "Custom"
 ];
 
-export default function AiSuggestionPanel({ draft, onApplySuggestions, onSaveVersion }) {
+export default function AiSuggestionPanel({ draft, onApplySuggestions, onSaveVersion, onAfterGenerate }) {
   const isFree = draft.tier === "free";
   const [industry, setIndustry] = useState("General Professional");
   const [customIndustry, setCustomIndustry] = useState("");
@@ -52,6 +52,7 @@ export default function AiSuggestionPanel({ draft, onApplySuggestions, onSaveVer
         throw new Error(payload.message || "Unable to generate suggestions.");
       }
       setSuggestions(payload);
+      onAfterGenerate?.();
     } catch (requestError) {
       setError(requestError.message);
     } finally {

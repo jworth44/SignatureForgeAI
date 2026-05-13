@@ -8,6 +8,7 @@ import { generateSignatureArtifacts, getDefaultDraft } from "../utils/htmlSignat
 const STORAGE_KEY = "signaturepilot.ai.draft";
 const VERSION_STORAGE_KEY = "signaturepilot.ai.versions";
 const MOBILE_LAYOUT_BREAKPOINT = 768;
+
 const SAMPLE_PROFILES = {
   founder: {
     fullName: "Jordan Wells",
@@ -49,12 +50,27 @@ const SAMPLE_PROFILES = {
   }
 };
 
+const TEMPLATE_OPTIONS = [
+  { value: "classic", label: "Professional Classic", description: "Balanced and polished for daily business email.", pro: false },
+  { value: "corporate", label: "Corporate", description: "Structured and brand-forward for teams and partnerships.", pro: true },
+  { value: "minimal", label: "Minimal", description: "Clean, modern, and founder-friendly.", pro: false },
+  { value: "premium-split", label: "Premium", description: "A richer presentation with a stronger executive feel.", pro: true },
+  { value: "mobile-compact", label: "Mobile Compact", description: "Built to stay readable in narrow mobile email apps.", pro: false }
+];
+
+const CONTROL_TABS = ["Content", "Style", "AI", "Export"];
+const MOBILE_WORKSPACE_TABS = ["Templates", "Preview", "Edit", "Export"];
+
 export default function BuilderPage() {
   const initialDraft = useMemo(() => loadInitialDraft(), []);
   const originalDraftRef = useRef(initialDraft);
   const [draft, setDraft] = useState(initialDraft);
   const [copyMessage, setCopyMessage] = useState("");
   const [copyState, setCopyState] = useState("idle");
+  const [activeControlTab, setActiveControlTab] = useState("Content");
+  const [mobileWorkspaceTab, setMobileWorkspaceTab] = useState("Preview");
+  const [previewDevice, setPreviewDevice] = useState("desktop");
+  const [previewZoom, setPreviewZoom] = useState("100");
   const [savedVersions, setSavedVersions] = useState(() => {
     try {
       const stored = window.localStorage.getItem(VERSION_STORAGE_KEY);
@@ -73,11 +89,11 @@ export default function BuilderPage() {
   }, [savedVersions]);
 
   const artifacts = useMemo(() => generateSignatureArtifacts(draft), [draft]);
-  const isFree = draft.tier === "free";
+  const isFree = artifacts.effectiveDraft.tier === "free";
   const showAutoLayoutNotice = draft.layout === "mobile-compact" && draft.layoutAutoSelected;
 
   useEffect(() => {
-    function maybeAutoSelectMobileLayout() {
+    function syncLayoutForScreenWidth() {
       const isNarrowScreen = window.innerWidth < MOBILE_LAYOUT_BREAKPOINT;
       if (!isNarrowScreen) {
         return;
@@ -96,9 +112,9 @@ export default function BuilderPage() {
       });
     }
 
-    maybeAutoSelectMobileLayout();
-    window.addEventListener("resize", maybeAutoSelectMobileLayout);
-    return () => window.removeEventListener("resize", maybeAutoSelectMobileLayout);
+    syncLayoutForScreenWidth();
+    window.addEventListener("resize", syncLayoutForScreenWidth);
+    return () => window.removeEventListener("resize", syncLayoutForScreenWidth);
   }, []);
 
   useEffect(() => {
@@ -155,10 +171,7 @@ export default function BuilderPage() {
       layoutManuallySelected: true,
       layoutAutoSelected: false
     }));
-  }
-
-  function applySuggestions(payload) {
-    setDraft((current) => applySuggestedFields(current, payload));
+    setMobileWorkspaceTab("Preview");
   }
 
   async function readFileAsDataUrl(targetField, file) {
@@ -179,6 +192,7 @@ export default function BuilderPage() {
       await navigator.clipboard.writeText(text);
       setCopyMessage(`${label} copied.`);
       setCopyState("success");
+      setMobileWorkspaceTab("Preview");
     } catch {
       setCopyMessage("Copy failed. Try again or use another browser.");
       setCopyState("error");
@@ -199,11 +213,13 @@ export default function BuilderPage() {
 
       setCopyMessage("Signature copied. Paste it directly into Gmail, Outlook, Apple Mail, or Yahoo.");
       setCopyState("success");
+      setMobileWorkspaceTab("Preview");
     } catch {
       try {
         copyRenderedSignatureFallback(artifacts.exportHtml);
         setCopyMessage("Signature copied using fallback mode.");
         setCopyState("success");
+        setMobileWorkspaceTab("Preview");
       } catch {
         setCopyMessage("Copy failed. Try again or use another browser.");
         setCopyState("error");
@@ -243,169 +259,369 @@ export default function BuilderPage() {
     setSavedVersions((current) => current.filter((version) => version.id !== versionId));
   }
 
-  return (
-    <div className="page-stack">
-      <section className="builder-hero">
+  function handleTierChange(value) {
+    setDraft((current) => ({
+      ...current,
+      tier: value,
+      includeBranding: value === "free" ? true : current.includeBranding,
+      layoutAutoSelected: false,
+      logoSize: value === "free" && (current.logoSize === "custom" || current.logoSize === "extra-large") ? "large" : current.logoSize
+    }));
+  }
+
+  const contentEditor = (
+    <SignatureForm
+      draft={draft}
+      onApplySampleProfile={applySampleProfile}
+      onFieldChange={updateField}
+      onColorChange={(value) => updateField("brandColor", value)}
+      onTierChange={handleTierChange}
+      onFileSelect={readFileAsDataUrl}
+      onFileRemove={(field) => updateField(field, "")}
+    />
+  );
+
+  const styleEditor = (
+    <section className="workspace-panel-section">
+      <div className="workspace-section-heading">
         <div>
+          <p className="eyebrow">Style</p>
+          <h3>Fine-tune the signature</h3>
+        </div>
+      </div>
+      <div className="field-grid">
+        <label className="field">
+          <span>Layout</span>
+          <select aria-label="Preview layout" value={artifacts.effectiveDraft.layout} onChange={(event) => handleLayoutChange(event.target.value)}>
+            {TEMPLATE_OPTIONS.map((option) => (
+              <option key={option.value} disabled={isFree && option.pro} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <small className="locked-copy">
+            {isFree
+              ? "Free Mode includes Professional Classic, Minimal, and Mobile Compact. Corporate and Premium unlock with Pro."
+              : "Use Mobile Compact if your signature looks squeezed in mobile email apps."}
+          </small>
+          {showAutoLayoutNotice ? <small className="support-copy">Mobile Compact selected for better mobile email compatibility.</small> : null}
+        </label>
+
+        <label className="field">
+          <span>Brand colour</span>
+          <input type="color" value={draft.brandColor} onChange={(event) => updateField("brandColor", event.target.value)} />
+        </label>
+
+        <label className="field">
+          <span>Logo size</span>
+          <select aria-label="Preview logo size" value={artifacts.effectiveDraft.logoSize} onChange={(event) => updateField("logoSize", event.target.value)}>
+            <option value="small">Small</option>
+            <option value="medium">Medium</option>
+            <option value="large">Large</option>
+            <option disabled={isFree} value="extra-large">Extra Large</option>
+            <option disabled={isFree} value="custom">Custom</option>
+          </select>
+          <small className="locked-copy">
+            {isFree ? "Free Mode supports Small, Medium, and Large. Extra Large and Custom are Pro features." : "Logo size updates the live preview and copied signature."}
+          </small>
+        </label>
+
+        {artifacts.effectiveDraft.logoSize === "custom" ? (
+          <label className="field">
+            <span>Custom logo width</span>
+            <input
+              aria-label="Preview custom logo width"
+              max="180"
+              min="40"
+              type="number"
+              value={artifacts.effectiveDraft.customLogoWidth}
+              onChange={(event) => updateField("customLogoWidth", event.target.value)}
+            />
+            <small className="support-copy">Range: 40px to 180px.</small>
+          </label>
+        ) : null}
+
+        <label className="field">
+          <span>Divider</span>
+          <select
+            aria-label="Preview divider"
+            disabled={isFree || artifacts.effectiveDraft.layout === "mobile-compact"}
+            value={artifacts.effectiveDraft.showDivider ? "on" : "off"}
+            onChange={(event) => updateField("showDivider", event.target.value === "on")}
+          >
+            <option value="off">Off</option>
+            <option value="on">On</option>
+          </select>
+          <small className="locked-copy">
+            {isFree || artifacts.effectiveDraft.layout === "mobile-compact"
+              ? "Divider stays off in Free Mode and is not used in Mobile Compact."
+              : "Optional Pro visual divider."}
+          </small>
+        </label>
+
+        <label className="field">
+          <span>Branding</span>
+          <select
+            aria-label="Preview branding"
+            disabled={isFree}
+            value={artifacts.includeBranding ? "include" : "remove"}
+            onChange={(event) => updateField("includeBranding", event.target.value === "include")}
+          >
+            <option value="include">Include</option>
+            <option value="remove">Remove</option>
+          </select>
+          <small className="locked-copy">{isFree ? "Signature Pilot AI branding included." : "Pro can export clean unbranded HTML."}</small>
+        </label>
+      </div>
+      <div className="workspace-inline-actions">
+        <button className="button button-secondary button-inline" type="button" onClick={handleRevertToOriginal}>
+          Revert to Original
+        </button>
+        {copyMessage ? <p className="support-copy">{copyMessage}</p> : null}
+      </div>
+    </section>
+  );
+
+  const aiEditor = (
+    <div className="workspace-ai-grid">
+      <AiSuggestionPanel
+        draft={draft}
+        onAfterGenerate={() => setMobileWorkspaceTab("Preview")}
+        onApplySuggestions={({ mode, suggestions }) => {
+          setDraft((current) => applySuggestedFields(current, suggestions, mode));
+          setCopyMessage(`${mode} applied.`);
+          setMobileWorkspaceTab("Preview");
+        }}
+        onSaveVersion={saveCurrentVersion}
+      />
+
+      <section className="panel workspace-history-panel">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">Recovery</p>
+            <h2>Recent Signature Versions</h2>
+          </div>
+          <button className="button button-secondary button-inline" type="button" onClick={() => saveCurrentVersion("Manual save")}>
+            Save Current Version
+          </button>
+        </div>
+        {savedVersions.length ? (
+          <div className="version-list">
+            {savedVersions.map((version) => (
+              <article key={version.id} className="version-card">
+                <div>
+                  <strong>{version.summary}</strong>
+                  <p className="support-copy">{new Date(version.timestamp).toLocaleString()}</p>
+                </div>
+                <div className="button-row">
+                  <button className="button button-primary" type="button" onClick={() => restoreVersion(version)}>
+                    Restore
+                  </button>
+                  <button className="button button-ghost" type="button" onClick={() => deleteVersion(version.id)}>
+                    Delete version
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="support-copy">Save current work or apply AI suggestions to build a recoverable version history.</p>
+        )}
+      </section>
+    </div>
+  );
+
+  const exportEditor = (
+    <section className="panel export-panel">
+      <div className="panel-header">
+        <div>
+          <p className="eyebrow">Export</p>
+          <h2>Copy or download your signature</h2>
+        </div>
+      </div>
+      <div className="workspace-export-grid">
+        <div className="export-action-card">
+          <button
+            className={`button button-primary ${copyState === "success" ? "button-success" : ""} ${copyState === "error" ? "button-error" : ""}`}
+            type="button"
+            onClick={handleCopySignature}
+          >
+            {copyState === "success" ? "Copied!" : "Copy Signature"}
+          </button>
+          <p className="support-copy">Copy Signature: best for Gmail, Outlook, Apple Mail, Yahoo. Copies the finished visual signature.</p>
+        </div>
+
+        {!isFree ? (
+          <div className="export-action-card">
+            <button className="button button-secondary" type="button" onClick={() => handleCopy(artifacts.exportHtml, "Raw HTML")}>
+              Copy Raw HTML
+            </button>
+            <p className="support-copy">Copy Raw HTML: Pro only. For platforms that specifically ask for HTML code.</p>
+          </div>
+        ) : null}
+
+        {!isFree ? (
+          <div className="export-action-card">
+            <button className="button button-secondary" type="button" onClick={() => handleCopy(artifacts.plainText, "Plain text signature")}>
+              Copy Plain Text Signature
+            </button>
+            <p className="support-copy">Copy Plain Text Signature: copies a text-only fallback.</p>
+          </div>
+        ) : null}
+
+        <div className="export-action-card">
+          <button className="button button-secondary" disabled={isFree} type="button" onClick={handleDownloadHtml}>
+            Download HTML File
+          </button>
+          <p className="support-copy">Download HTML File: Pro export/download backup.</p>
+        </div>
+
+        <div className="export-action-card">
+          <button className="button button-ghost" type="button" onClick={handleReset}>
+            Reset
+          </button>
+          <p className="support-copy">Reset: clears the current draft and starts over.</p>
+        </div>
+      </div>
+      <p className="support-copy">
+        Use Copy Signature for Gmail, Outlook, Apple Mail, and Yahoo. Do not paste raw HTML into your email settings unless the platform specifically asks for HTML.
+      </p>
+      {isFree ? <p className="locked-copy">Free signatures include Signature Pilot AI branding. Editing/removing branding is a Pro feature.</p> : null}
+      {copyState === "success" ? <p className="copy-feedback copy-feedback-success">Signature copied. Paste it into Gmail, Outlook, Apple Mail, or Yahoo.</p> : null}
+      {copyState === "error" ? <p className="copy-feedback copy-feedback-error">Copy failed. Try again or use another browser.</p> : null}
+      {isFree ? <p className="locked-copy">Free signatures are branded and limited. Upgrade to Pro to remove branding, unlock advanced layout controls, and export clean editable HTML.</p> : null}
+      <p className="support-copy">
+        Why can I still edit after pasting? Email clients such as Outlook and Gmail allow users to edit pasted signature content. Signature Pilot AI controls what is generated and exported, but cannot lock third-party editors. Pro unlocks clean, editable, unbranded output.
+      </p>
+      {copyMessage ? <p className="support-copy">{copyMessage}</p> : null}
+    </section>
+  );
+
+  return (
+    <div className="page-stack workspace-page">
+      <section className="workspace-topbar panel">
+        <div className="workspace-topbar-copy">
           <p className="eyebrow">Builder workspace</p>
           <h1>Build once, paste anywhere.</h1>
-          <p className="hero-subheadline">
-            Create a clean signature with professional spacing, clickable links, fixed image sizing, and zero visible table borders.
-          </p>
+          <p className="hero-subheadline">A focused workspace for professional email signatures that stay clean in Gmail, Outlook, Apple Mail, and Yahoo.</p>
         </div>
-        <div className="builder-hero-links">
+        <div className="workspace-topbar-actions">
+          <label className="tier-toggle">
+            <span>Mode</span>
+            <select value={draft.tier} onChange={(event) => handleTierChange(event.target.value)}>
+              <option value="free">Free Mode</option>
+              <option value="pro">Pro Mode</option>
+            </select>
+          </label>
           <Link className="button button-secondary" to="/install">
-            View Install Guide
+            Install Guide
           </Link>
           <Link className="button button-primary" to="/upgrade">
-            Compare Pro plans
+            Upgrade
           </Link>
         </div>
       </section>
 
-      <section className="builder-layout">
-        <div className="builder-left-column">
-          <SignatureForm
-            draft={draft}
-            onApplySampleProfile={applySampleProfile}
-            onFieldChange={updateField}
-            onColorChange={(value) => updateField("brandColor", value)}
-            onTierChange={(value) =>
-              setDraft((current) => ({
-                ...current,
-                tier: value,
-                includeBranding: value === "free" ? true : current.includeBranding,
-                layoutAutoSelected: false,
-                logoSize:
-                  value === "free" && (current.logoSize === "custom" || current.logoSize === "extra-large")
-                    ? "large"
-                    : current.logoSize
-              }))
-            }
-            onFileSelect={readFileAsDataUrl}
-            onFileRemove={(field) => updateField(field, "")}
-          />
-
-          <section className="panel">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">Recovery</p>
-                <h2>Recent Signature Versions</h2>
-              </div>
-              <button className="button button-secondary button-inline" type="button" onClick={() => saveCurrentVersion("Manual save")}>
-                Save Current Version
-              </button>
-            </div>
-            {savedVersions.length ? (
-              <div className="version-list">
-                {savedVersions.map((version) => (
-                  <article key={version.id} className="version-card">
-                    <div>
-                      <strong>{version.summary}</strong>
-                      <p className="support-copy">{new Date(version.timestamp).toLocaleString()}</p>
-                    </div>
-                    <div className="button-row">
-                      <button className="button button-primary" type="button" onClick={() => restoreVersion(version)}>
-                        Restore
-                      </button>
-                      <button className="button button-ghost" type="button" onClick={() => deleteVersion(version.id)}>
-                        Delete version
-                      </button>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            ) : (
-              <p className="support-copy">Save current work or apply AI suggestions to build a recoverable version history.</p>
-            )}
-          </section>
-
-          <AiSuggestionPanel
-            draft={draft}
-            onApplySuggestions={({ mode, suggestions }) => {
-              setDraft((current) => applySuggestedFields(current, suggestions, mode));
-              setCopyMessage(`${mode} applied.`);
+      <div className="workspace-mobile-tabs">
+        {MOBILE_WORKSPACE_TABS.map((tab) => (
+          <button
+            key={tab}
+            className={`tab-button ${mobileWorkspaceTab === tab ? "tab-button-active" : ""}`}
+            type="button"
+            onClick={() => {
+              setMobileWorkspaceTab(tab);
+              if (tab === "Export") {
+                setActiveControlTab("Export");
+              } else if (tab === "Edit" && activeControlTab === "Export") {
+                setActiveControlTab("Content");
+              }
             }}
-            onSaveVersion={saveCurrentVersion}
-          />
-        </div>
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
 
-        <div className="builder-right-column">
+      <section className="workspace-shell">
+        <aside className={`panel workspace-templates ${mobileWorkspaceTab === "Templates" ? "workspace-mobile-active" : ""}`}>
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Templates</p>
+              <h2>Pick a signature style</h2>
+            </div>
+          </div>
+          <div className="workspace-template-list">
+            {TEMPLATE_OPTIONS.map((template) => {
+              const locked = isFree && template.pro;
+              const active = artifacts.effectiveDraft.layout === template.value;
+              return (
+                <button
+                  key={template.value}
+                  className={`template-card workspace-template-card ${active ? "template-card-active" : ""} ${locked ? "template-card-locked" : ""}`}
+                  disabled={locked}
+                  type="button"
+                  onClick={() => handleLayoutChange(template.value)}
+                >
+                  <div className={`template-thumb template-thumb-${template.value}`}>
+                    <span className="template-thumb-bar" />
+                    <span className="template-thumb-line template-thumb-line-strong" />
+                    <span className="template-thumb-line" />
+                    <span className="template-thumb-line template-thumb-line-short" />
+                  </div>
+                  <div className="workspace-template-copy">
+                    <div className="workspace-template-title-row">
+                      <strong>{template.label}</strong>
+                      <span className={`workspace-badge ${locked ? "workspace-badge-pro" : "workspace-badge-free"}`}>{template.pro ? "Pro" : "Free"}</span>
+                    </div>
+                    <span>{template.description}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        <div className={`panel workspace-preview ${mobileWorkspaceTab === "Preview" ? "workspace-mobile-active" : ""}`}>
           <SignaturePreview
             draft={draft}
             effectiveDraft={artifacts.effectiveDraft}
-            onLayoutChange={handleLayoutChange}
-            onDividerToggle={(value) => updateField("showDivider", value)}
-            onLogoSizeChange={(value) => updateField("logoSize", value)}
-            onCustomLogoWidthChange={(value) => updateField("customLogoWidth", value)}
-            onBrandingToggle={(value) => updateField("includeBranding", value)}
-            onRevertToOriginal={handleRevertToOriginal}
-            showAutoLayoutNotice={showAutoLayoutNotice}
+            previewZoom={previewZoom}
+            previewDevice={previewDevice}
+            onPreviewZoomChange={setPreviewZoom}
+            onPreviewDeviceChange={setPreviewDevice}
           />
+        </div>
 
-          <section className="panel export-panel">
-            <div className="panel-header">
-              <div>
-                <p className="eyebrow">HTML export</p>
-                <h2>Use it in your email client</h2>
-              </div>
+        <div className={`panel workspace-controls ${mobileWorkspaceTab === "Edit" || mobileWorkspaceTab === "Export" ? "workspace-mobile-active" : ""}`}>
+          <div className="panel-header">
+            <div>
+              <p className="eyebrow">Controls</p>
+              <h2>Edit, refine, and export</h2>
             </div>
-            <div className="button-row">
-              <div className="export-action-card">
-                <button
-                  className={`button button-primary ${copyState === "success" ? "button-success" : ""} ${copyState === "error" ? "button-error" : ""}`}
-                  type="button"
-                  onClick={handleCopySignature}
-                >
-                  {copyState === "success" ? "Copied!" : "Copy Signature"}
-                </button>
-                <p className="support-copy">Copy Signature: best for Gmail, Outlook, Apple Mail, Yahoo. Copies the finished visual signature.</p>
-              </div>
-              {!isFree ? (
-                <div className="export-action-card">
-                  <button className="button button-secondary" type="button" onClick={() => handleCopy(artifacts.exportHtml, "Raw HTML")}>
-                    Copy Raw HTML
-                  </button>
-                  <p className="support-copy">Copy Raw HTML: Pro only. For platforms that specifically ask for HTML code.</p>
-                </div>
-              ) : null}
-              {!isFree ? (
-                <div className="export-action-card">
-                  <button className="button button-secondary" type="button" onClick={() => handleCopy(artifacts.plainText, "Plain text signature")}>
-                    Copy Plain Text Signature
-                  </button>
-                  <p className="support-copy">Copy Plain Text Signature: copies a text-only fallback.</p>
-                </div>
-              ) : null}
-              <div className="export-action-card">
-                <button className="button button-secondary" disabled={isFree} type="button" onClick={handleDownloadHtml}>
-                  Download HTML File
-                </button>
-                <p className="support-copy">Download HTML File: Pro export/download backup.</p>
-              </div>
-              <div className="export-action-card">
-                <button className="button button-ghost" type="button" onClick={handleReset}>
-                  Reset
-                </button>
-                <p className="support-copy">Reset: clears the current draft and starts over.</p>
-              </div>
-            </div>
-            <p className="support-copy">
-              Use Copy Signature for Gmail, Outlook, Apple Mail, and Yahoo. Do not paste raw HTML into your email settings unless the platform specifically asks for HTML.
-            </p>
-            {isFree ? (
-              <p className="locked-copy">
-                Free signatures include Signature Pilot AI branding. Editing/removing branding is a Pro feature.
-              </p>
-            ) : null}
-            {copyState === "success" ? <p className="copy-feedback copy-feedback-success">Signature copied. Paste it into Gmail, Outlook, Apple Mail, or Yahoo.</p> : null}
-            {copyState === "error" ? <p className="copy-feedback copy-feedback-error">Copy failed. Try again or use another browser.</p> : null}
-            {isFree ? <p className="locked-copy">Free signatures are branded and limited. Upgrade to Pro to remove branding, unlock advanced layout controls, and export clean editable HTML.</p> : null}
-            <p className="support-copy">
-              Why can I still edit after pasting? Email clients such as Outlook and Gmail allow users to edit pasted signature content. Signature Pilot AI controls what is generated and exported, but cannot lock third-party editors. Pro unlocks clean, editable, unbranded output.
-            </p>
-            {copyMessage ? <p className="support-copy">{copyMessage}</p> : null}
-          </section>
+          </div>
+
+          <div className="workspace-control-tabs">
+            {CONTROL_TABS.map((tab) => (
+              <button
+                key={tab}
+                className={`tab-button ${activeControlTab === tab ? "tab-button-active" : ""}`}
+                type="button"
+                onClick={() => {
+                  setActiveControlTab(tab);
+                  setMobileWorkspaceTab(tab === "Export" ? "Export" : "Edit");
+                }}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          <div className="workspace-control-body">
+            <div className={`workspace-tab-panel ${activeControlTab === "Content" ? "workspace-tab-panel-active" : ""}`}>{contentEditor}</div>
+            <div className={`workspace-tab-panel ${activeControlTab === "Style" ? "workspace-tab-panel-active" : ""}`}>{styleEditor}</div>
+            <div className={`workspace-tab-panel ${activeControlTab === "AI" ? "workspace-tab-panel-active" : ""}`}>{aiEditor}</div>
+            <div className={`workspace-tab-panel ${activeControlTab === "Export" ? "workspace-tab-panel-active" : ""}`}>{exportEditor}</div>
+          </div>
         </div>
       </section>
     </div>

@@ -2,7 +2,7 @@ import React from "react";
 
 const SAMPLE_OPTIONS = [
   { key: "founder", label: "Startup Founder", copy: "Fast-moving SaaS founder sample", template: "Minimal" },
-  { key: "contractor", label: "Contractor", copy: "Service-first example with quote CTA", template: "Classic" },
+  { key: "contractor", label: "Contractor", copy: "Service-first example with quote CTA", template: "Professional Classic" },
   { key: "executive", label: "Executive", copy: "Boardroom-ready leadership example", template: "Corporate" }
 ];
 
@@ -36,138 +36,132 @@ const MESSAGE_FIELDS = [
   ["disclaimer", "Disclaimer", "textarea"]
 ];
 
-export default function SignatureForm({
-  draft,
-  onApplySampleProfile,
-  onFieldChange,
-  onColorChange,
-  onTierChange,
-  onFileSelect,
-  onFileRemove
-}) {
+export default function SignatureForm({ draft, onApplySampleProfile, onFieldChange, onColorChange, onTierChange, onFileSelect, onFileRemove }) {
   const isFree = draft.tier === "free";
 
   return (
-    <section className="panel builder-panel">
-      <div className="panel-header">
-        <div>
-          <p className="eyebrow">Signature builder</p>
-          <h2>Build your signature</h2>
-        </div>
-        <label className="tier-toggle">
-          <span>Mode</span>
-          <select value={draft.tier} onChange={(event) => onTierChange(event.target.value)}>
-            <option value="free">Free Mode</option>
-            <option value="pro">Pro Mode</option>
-          </select>
-        </label>
-      </div>
-
-      <div className="form-section">
-        <div className="form-section-heading">
+    <div className="workspace-form-stack">
+      <section className="workspace-panel-section">
+        <div className="workspace-section-heading">
           <div>
-            <h3>Start faster</h3>
-            <p className="support-copy">Load polished sample data, then tailor it to your brand.</p>
+            <p className="eyebrow">Content</p>
+            <h3>Signature details</h3>
           </div>
+          <label className="tier-toggle">
+            <span>Mode</span>
+            <select value={draft.tier} onChange={(event) => onTierChange(event.target.value)}>
+              <option value="free">Free Mode</option>
+              <option value="pro">Pro Mode</option>
+            </select>
+          </label>
         </div>
-        <div className="sample-grid">
-          {SAMPLE_OPTIONS.map((sample) => (
-            <button key={sample.key} className="sample-card" type="button" onClick={() => onApplySampleProfile(sample.key)}>
-              <strong>{sample.label}</strong>
-              <span>{sample.copy}</span>
-              <small>{sample.template} sample</small>
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {FIELD_SECTIONS.map((section) => (
-        <div key={section.title} className="form-section">
+        <div className="form-section">
           <div className="form-section-heading">
             <div>
-              <h3>{section.title}</h3>
-              <p className="support-copy">{section.description}</p>
+              <h3>Start faster</h3>
+              <p className="support-copy">Load polished sample data, then tailor it to your brand.</p>
+            </div>
+          </div>
+          <div className="sample-grid">
+            {SAMPLE_OPTIONS.map((sample) => (
+              <button key={sample.key} className="sample-card" type="button" onClick={() => onApplySampleProfile(sample.key)}>
+                <strong>{sample.label}</strong>
+                <span>{sample.copy}</span>
+                <small>{sample.template} sample</small>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {FIELD_SECTIONS.map((section) => (
+          <div key={section.title} className="form-section">
+            <div className="form-section-heading">
+              <div>
+                <h3>{section.title}</h3>
+                <p className="support-copy">{section.description}</p>
+              </div>
+            </div>
+            <div className="field-grid">
+              {section.fields.map(([key, label]) => {
+                const locked = isFree && (key === "location" || key.endsWith("Url"));
+                return (
+                  <label key={key} className="field">
+                    <span>{label}</span>
+                    <input disabled={locked} value={draft[key]} onChange={(event) => onFieldChange(key, event.target.value)} />
+                    {locked ? <small className="locked-copy">Upgrade to Pro to unlock this field.</small> : null}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        <div className="form-section">
+          <div className="form-section-heading">
+            <div>
+              <h3>Signature messaging</h3>
+              <p className="support-copy">Everything shown in the signature stays editable here, including CTA and disclaimer copy.</p>
             </div>
           </div>
           <div className="field-grid">
-            {section.fields.map(([key, label]) => {
-              const locked = isFree && (key === "location" || key.endsWith("Url"));
-              return (
-                <label key={key} className="field">
-                  <span>{label}</span>
-                  <input disabled={locked} value={draft[key]} onChange={(event) => onFieldChange(key, event.target.value)} />
-                  {locked ? <small className="locked-copy">Upgrade to Pro to unlock this field.</small> : null}
-                </label>
-              );
-            })}
+            {MESSAGE_FIELDS.map(([key, label, type]) => (
+              <label key={key} className="field">
+                <span>{label}</span>
+                {type === "textarea" ? (
+                  <textarea className="studio-textarea" rows="3" value={draft[key]} onChange={(event) => onFieldChange(key, event.target.value)} />
+                ) : (
+                  <input value={draft[key]} onChange={(event) => onFieldChange(key, event.target.value)} />
+                )}
+              </label>
+            ))}
           </div>
         </div>
-      ))}
 
-      <div className="form-section">
-        <div className="form-section-heading">
-          <div>
-            <h3>Signature messaging</h3>
-            <p className="support-copy">Everything shown in the signature stays editable here, including CTA and disclaimer copy.</p>
-          </div>
-        </div>
-        <div className="field-grid">
-          {MESSAGE_FIELDS.map(([key, label, type]) => (
-            <label key={key} className="field">
-              <span>{label}</span>
-              {type === "textarea" ? (
-                <textarea className="studio-textarea" rows="3" value={draft[key]} onChange={(event) => onFieldChange(key, event.target.value)} />
-              ) : (
-                <input value={draft[key]} onChange={(event) => onFieldChange(key, event.target.value)} />
-              )}
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="form-section">
-        <div className="form-section-heading">
-          <div>
-            <h3>Brand styling</h3>
-            <p className="support-copy">Set the brand color here, then fine-tune layout and exports beside the live preview.</p>
-          </div>
-        </div>
-        <div className="field-grid">
-          <label className="field">
-            <span>Brand color</span>
-            <input type="color" value={draft.brandColor} onChange={(event) => onColorChange(event.target.value)} />
-          </label>
-        </div>
-      </div>
-
-      <div className="form-section">
-        <div className="form-section-heading">
-          <div>
-            <h3>Brand assets</h3>
-            <p className="support-copy">Upload a clean logo here, then adjust its size and layout beside the live preview.</p>
-          </div>
-        </div>
-        <div className="upload-grid">
-          <AssetUploader
-            label="Logo upload"
-            value={draft.logoDataUrl}
-            inputId="logo-upload"
-            onFileSelect={(file) => onFileSelect("logoDataUrl", file)}
-            onFileRemove={() => onFileRemove("logoDataUrl")}
-          />
-          <div className="asset-uploader cross-sell-card">
-            <div className="asset-uploader-header">
-              <strong>Pilot AI Family</strong>
+        <div className="form-section">
+          <div className="form-section-heading">
+            <div>
+              <h3>Brand styling</h3>
+              <p className="support-copy">Set the base colour here, then fine-tune layout and export behavior in the Style tab.</p>
             </div>
-            <p className="support-copy">Need a logo? Logo Pilot AI will help you create, refine, and blend logo concepts.</p>
-            <a className="button button-secondary" href="#">
-              Explore Logo Pilot AI
-            </a>
+          </div>
+          <div className="field-grid">
+            <label className="field">
+              <span>Brand colour</span>
+              <input type="color" value={draft.brandColor} onChange={(event) => onColorChange(event.target.value)} />
+            </label>
           </div>
         </div>
-        {isFree ? <p className="locked-banner">Free Mode: Signature Pilot AI branding included and advanced customization is locked until upgrade.</p> : null}
-      </div>
-    </section>
+
+        <div className="form-section">
+          <div className="form-section-heading">
+            <div>
+              <h3>Logo</h3>
+              <p className="support-copy">Upload your logo here, then adjust size and presentation in the Style tab.</p>
+            </div>
+          </div>
+          <div className="upload-grid">
+            <AssetUploader
+              label="Logo upload"
+              value={draft.logoDataUrl}
+              inputId="logo-upload"
+              onFileSelect={(file) => onFileSelect("logoDataUrl", file)}
+              onFileRemove={() => onFileRemove("logoDataUrl")}
+            />
+            <div className="asset-uploader cross-sell-card">
+              <div className="asset-uploader-header">
+                <strong>Pilot AI Family</strong>
+              </div>
+              <p className="support-copy">Need a logo? Logo Pilot AI will help you create, refine, and blend logo concepts.</p>
+              <a className="button button-secondary" href="#">
+                Explore Logo Pilot AI
+              </a>
+            </div>
+          </div>
+          {isFree ? <p className="locked-banner">Free Mode: Signature Pilot AI branding included and advanced customization is locked until upgrade.</p> : null}
+        </div>
+      </section>
+    </div>
   );
 }
 

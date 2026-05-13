@@ -18,8 +18,12 @@ test.describe("Signature Pilot AI smoke tests", () => {
     await expect(page.locator('label:has-text("Logo size") select')).toBeVisible();
     await expect(page.locator('label:has-text("Logo size") select option[value="extra-large"]')).toHaveAttribute("disabled", "");
     await expect(page.locator('label:has-text("Logo size") select option[value="custom"]')).toHaveAttribute("disabled", "");
+    await expect(page.locator('label:has-text("Layout") select option[value="mobile-compact"]')).toHaveCount(1);
+    await expect(page.getByText("Use Mobile Compact if your signature looks squeezed in mobile email apps.")).toBeVisible();
 
-    await expect(page.locator('label:has-text("Layout") select')).toBeDisabled();
+    await expect(page.locator('label:has-text("Layout") select')).toBeEnabled();
+    await page.locator('label:has-text("Layout") select').selectOption("mobile-compact");
+    await expect(page.locator(".preview-meta")).toContainText("Mobile Compact");
     await expect(page.locator('label:has-text("Vertical divider") input')).toBeDisabled();
     await expect(page.locator('label:has-text("Remove Signature Pilot AI branding") input')).toBeDisabled();
 
@@ -48,12 +52,13 @@ test.describe("Signature Pilot AI smoke tests", () => {
 
     expect(clipboardPayload.types).toContain("text/html");
     expect(clipboardPayload.html).toContain('<table cellpadding="0" cellspacing="0" border="0"');
-    expect(clipboardPayload.html).toContain('colspan="2"');
+    expect(clipboardPayload.html).toContain("max-width:340px");
     expect(clipboardPayload.html).toContain("Created with");
     expect(clipboardPayload.html).toContain("Signature Pilot AI");
     expect(clipboardPayload.html).toContain('https://signature-forge-ai.vercel.app');
     expect(clipboardPayload.html).toContain("border:none");
     expect(clipboardPayload.html).not.toContain("border-top:");
+    expect(clipboardPayload.html).not.toContain("padding:0 0 0 12px");
     expect(clipboardPayload.text).toContain("Signature Pilot AI");
   });
 
@@ -69,6 +74,7 @@ test.describe("Signature Pilot AI smoke tests", () => {
     await expect(page.locator('label:has-text("Logo size") select option[value="custom"]')).not.toHaveAttribute("disabled", "");
 
     await page.locator('label:has-text("Remove Signature Pilot AI branding") input').check();
+    await page.locator('label:has-text("Layout") select').selectOption("mobile-compact");
     await page.locator('label:has-text("Logo size") select').selectOption("custom");
     await page.locator('label:has-text("Custom logo width") input').fill("140");
     await page.getByRole("button", { name: "Copy Raw HTML" }).click();
@@ -77,6 +83,7 @@ test.describe("Signature Pilot AI smoke tests", () => {
     const copiedHtml = await page.evaluate(() => navigator.clipboard.readText());
     expect(copiedHtml).not.toContain("Created with Signature Pilot AI");
     expect(copiedHtml).toContain('width="140"');
+    expect(copiedHtml).toContain("max-width:340px");
   });
 
   test("Generated signature keeps core export and layout rules", async ({ page }) => {

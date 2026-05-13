@@ -84,13 +84,18 @@ export default function SignatureForm({
 
           <label className="field">
             <span>Layout</span>
-            <select disabled={isFree} value={effectiveLayout} onChange={(event) => onLayoutChange(event.target.value)}>
+            <select value={effectiveLayout} onChange={(event) => onLayoutChange(event.target.value)}>
               <option value="classic">Classic</option>
-              <option value="modern">Modern</option>
-              <option value="compact">Compact</option>
-              <option value="premium-split">Premium Split Line</option>
+              <option value="mobile-compact">Mobile Compact</option>
+              <option disabled={isFree} value="modern">Modern</option>
+              <option disabled={isFree} value="compact">Compact</option>
+              <option disabled={isFree} value="premium-split">Premium Split Line</option>
             </select>
-            {isFree ? <small className="locked-copy">Free Mode uses the basic Signature Pilot AI layout.</small> : null}
+            <small className="locked-copy">
+              {isFree
+                ? "Free Mode includes Classic and Mobile Compact. Use Mobile Compact if your signature looks squeezed in mobile email apps."
+                : "Use Mobile Compact if your signature looks squeezed in mobile email apps."}
+            </small>
           </label>
 
           <label className="field">
@@ -124,8 +129,8 @@ export default function SignatureForm({
 
           <label className="field field-checkbox">
             <span>Vertical divider</span>
-            <input disabled={isFree} checked={draft.showDivider} type="checkbox" onChange={(event) => onDividerToggle(event.target.checked)} />
-            {isFree ? <small className="locked-copy">Advanced layout controls are locked in Free Mode.</small> : null}
+            <input disabled={isFree || draft.layout === "mobile-compact"} checked={draft.showDivider} type="checkbox" onChange={(event) => onDividerToggle(event.target.checked)} />
+            {isFree || draft.layout === "mobile-compact" ? <small className="locked-copy">Advanced layout controls stay off in Free Mode and are not used in Mobile Compact.</small> : null}
           </label>
 
           <label className="field field-checkbox">

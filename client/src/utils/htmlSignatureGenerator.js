@@ -2,6 +2,7 @@ const LAYOUT_META = {
   classic: { name: "Classic", accentWeight: 500, label: "Call" },
   modern: { name: "Modern", accentWeight: 600, label: "Connect" },
   compact: { name: "Compact", accentWeight: 500, label: "Reach" },
+  "mobile-compact": { name: "Mobile Compact", accentWeight: 600, label: "Tap to connect" },
   "premium-split": { name: "Premium Split Line", accentWeight: 700, label: "Discover" }
 };
 
@@ -142,6 +143,51 @@ export function generateSignatureHtml({ draft, tier, includeBranding }) {
     ? `<tr><td colspan="${columnCount}" style="${cellResetStyle()}padding-bottom:10px;"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Premium split layout</span></td></tr>`
     : "";
 
+  if (sanitized.layout === "mobile-compact") {
+    return `
+<table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}width:100%;max-width:340px;font-family:Arial,Helvetica,sans-serif;color:#111827;">
+  <tbody>
+  <tr>
+    <td align="left" valign="top" style="${cellResetStyle()}padding:0;">
+      <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}width:100%;">
+        <tbody>
+        <tr>
+          <td align="left" style="${cellResetStyle()}padding:0 0 12px 0;">
+            ${logoMarkup}
+          </td>
+        </tr>
+        ${photoMarkup ? `<tr><td align="left" style="${cellResetStyle()}padding:0 0 10px 0;">${photoMarkup}</td></tr>` : ""}
+        <tr>
+          <td style="${cellResetStyle()}font-size:20px;line-height:25px;font-weight:700;color:#111827;padding:0 0 4px 0;">
+            ${escapeHtml(sanitized.fullName)}
+          </td>
+        </tr>
+        <tr>
+          <td style="${cellResetStyle()}font-size:13px;line-height:19px;font-weight:${meta.accentWeight};color:${brandColor};padding:0 0 8px 0;">
+            ${escapeHtml(buildTitleLine(sanitized))}
+          </td>
+        </tr>
+        ${contactRows}
+        ${socialRows}
+        <tr>
+          <td style="${cellResetStyle()}padding-top:10px;font-size:12px;line-height:18px;color:#374151;">
+            <a href="${ensureProtocol(sanitized.website)}" style="color:${brandColor};text-decoration:none;font-weight:600;">${escapeHtml(sanitized.ctaText || meta.label)}</a>
+          </td>
+        </tr>
+        <tr>
+          <td style="${cellResetStyle()}padding-top:8px;font-size:11px;line-height:16px;color:#6b7280;">
+            ${escapeHtml(sanitized.disclaimer)}
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </td>
+  </tr>
+  ${brandingRow}
+  </tbody>
+</table>`.trim();
+  }
+
   return `
 <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}font-family:Arial,Helvetica,sans-serif;color:#111827;">
   <tbody>
@@ -191,7 +237,7 @@ function applyTierRules(draft) {
     return {
       ...draft,
       includeBranding: true,
-      layout: "classic",
+      layout: draft.layout === "mobile-compact" ? "mobile-compact" : "classic",
       logoSize: draft.logoSize === "custom" || draft.logoSize === "extra-large" ? "large" : draft.logoSize,
       customLogoWidth: normalizeCustomLogoWidth(draft.customLogoWidth),
       showDivider: false,

@@ -317,6 +317,8 @@ h3 {
   min-height: 46px;
   padding: 0.82rem 1.2rem;
   font-weight: 700;
+  border-radius: 16px;
+  white-space: nowrap;
 }
 
 .button-inline {
@@ -363,6 +365,19 @@ h3 {
 .button-ghost {
   background: rgba(21, 29, 46, 0.06);
   color: var(--charcoal);
+}
+
+.button-danger {
+  background: rgba(185, 31, 57, 0.08);
+  color: #b91f39;
+  border: 1px solid rgba(185, 31, 57, 0.16);
+}
+
+.button-locked {
+  background: linear-gradient(180deg, rgba(241, 236, 255, 0.98), rgba(247, 243, 255, 0.98));
+  color: #6d58c5;
+  border: 1px solid rgba(139, 109, 255, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
 }
 
 .button-success {
@@ -911,6 +926,15 @@ h3 {
   background: #fff;
 }
 
+.asset-preview-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  border: 1px dashed rgba(24, 33, 49, 0.12);
+  color: var(--muted);
+}
+
 .text-button {
   padding: 0;
   background: transparent;
@@ -1125,10 +1149,15 @@ h3 {
   gap: 0.6rem;
 }
 
+.workspace-topbar-actions .button,
+.workspace-topbar-actions .workspace-mode-control {
+  min-height: 46px;
+}
+
 .workspace-mode-control {
   min-width: 148px;
   padding: 0.2rem 0.25rem 0.2rem 0.8rem;
-  border-radius: 999px;
+  border-radius: 16px;
   border: 1px solid rgba(21, 29, 46, 0.12);
   background: rgba(255, 255, 255, 0.92);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -1143,7 +1172,7 @@ h3 {
 .workspace-mode-control select {
   min-height: 42px;
   padding: 0.55rem 0.9rem;
-  border-radius: 999px;
+  border-radius: 12px;
   border: 0;
   background: rgba(24, 33, 49, 0.04);
   font-weight: 700;
@@ -1215,6 +1244,10 @@ h3 {
     linear-gradient(160deg, rgba(255, 255, 255, 0.98), rgba(243, 247, 255, 0.9)),
     radial-gradient(circle at top left, rgba(38, 99, 255, 0.08), transparent 38%);
   box-shadow: var(--shadow-soft);
+}
+
+.workspace-template-action {
+  width: 100%;
 }
 
 .workspace-template-card-head,
@@ -1347,6 +1380,65 @@ h3 {
   color: #5a43bf;
 }
 
+.workspace-metrics-grid,
+.workspace-smart-setup,
+.workspace-style-quick-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.workspace-metrics-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workspace-metric-card {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid rgba(24, 33, 49, 0.08);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.workspace-metric-card-score {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 255, 0.96)),
+    radial-gradient(circle at top left, rgba(38, 99, 255, 0.08), transparent 30%);
+}
+
+.workspace-metric-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.workspace-metric-card strong {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.workspace-checklist {
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--muted);
+  display: grid;
+  gap: 0.45rem;
+}
+
+.workspace-checklist-tight {
+  gap: 0.3rem;
+}
+
+.workspace-checklist-pass {
+  color: #0f8a4d;
+}
+
+.workspace-checklist-warn {
+  color: #8f5d11;
+}
+
 .workspace-preview-shell,
 .workspace-panel-section,
 .workspace-history-panel {
@@ -1423,7 +1515,7 @@ h3 {
   justify-content: flex-start;
   width: 100%;
   min-width: 0;
-  padding: 1rem 1.2rem 1rem 0.8rem;
+  padding: 0.8rem 1rem 0.8rem 0.65rem;
   border-radius: 28px;
   background:
     radial-gradient(circle at 14% 22%, rgba(38, 99, 255, 0.14), transparent 26%),
@@ -1470,7 +1562,7 @@ h3 {
 .workspace-email-body {
   display: grid;
   gap: 0.9rem;
-  padding: 1.4rem 1.5rem;
+  padding: 1.2rem 1.35rem;
   color: var(--ink);
 }
 
@@ -1573,6 +1665,15 @@ h3 {
   padding: 0.9rem 1rem;
 }
 
+.workspace-style-quick-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workspace-style-chip,
+.workspace-upload-button {
+  width: 100%;
+}
+
 .workspace-controls .version-card,
 .workspace-controls .export-action-card,
 .workspace-controls .suggestion-card,
@@ -1595,8 +1696,8 @@ h3 {
 
 @media (min-width: 981px) {
   .workspace-shell {
-    min-height: calc(100vh - 10.5rem);
-    max-height: calc(100vh - 10.5rem);
+    min-height: calc(100vh - 9.3rem);
+    max-height: calc(100vh - 9.3rem);
   }
 
   .workspace-templates,
@@ -1613,13 +1714,15 @@ h3 {
   .workspace-preview {
     position: sticky;
     top: 5.25rem;
-    max-height: calc(100vh - 10.5rem);
-    overflow: hidden;
+    max-height: calc(100vh - 9.3rem);
+    overflow-y: auto;
+    overflow-x: hidden;
   }
 
   .workspace-preview-shell {
-    grid-template-rows: auto auto minmax(0, 1fr) auto;
-    min-height: 100%;
+    grid-template-rows: auto auto auto auto;
+    align-content: start;
+    min-height: 0;
   }
 
   .workspace-email-stage {
@@ -1648,6 +1751,11 @@ h3 {
 
   .workspace-template-list,
   .workspace-export-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-metrics-grid,
+  .workspace-style-quick-grid {
     grid-template-columns: 1fr;
   }
 

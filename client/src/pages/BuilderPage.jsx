@@ -58,6 +58,22 @@ const TEMPLATE_OPTIONS = [
   { value: "mobile-compact", label: "Mobile Compact", description: "Built to stay readable in narrow mobile email apps.", pro: false, tone: "mobile", person: "Mason Ortiz", title: "Licensed General Contractor", cta: "Request a quote" }
 ];
 
+const INDUSTRY_OPTIONS = [
+  "Contractor / Trades",
+  "Safety Consulting",
+  "Real Estate",
+  "Law / Legal",
+  "Finance / Insurance",
+  "Medical / Health",
+  "Fitness / Coaching",
+  "Tech / SaaS",
+  "Retail / Ecommerce",
+  "Creative / Design",
+  "General Professional"
+];
+
+const GOAL_OPTIONS = ["Book calls", "Get quotes", "Show credibility", "Drive website visits"];
+const TONE_OPTIONS = ["Professional", "Friendly", "Premium", "Contractor", "Minimal"];
 const CONTROL_TABS = ["Content", "Style", "AI", "Export"];
 const MOBILE_WORKSPACE_TABS = ["Templates", "Preview", "Edit", "Export"];
 
@@ -71,6 +87,13 @@ export default function BuilderPage() {
   const [mobileWorkspaceTab, setMobileWorkspaceTab] = useState("Preview");
   const [previewDevice, setPreviewDevice] = useState("desktop");
   const [previewZoom, setPreviewZoom] = useState("100");
+  const [smartSetup, setSmartSetup] = useState({
+    industry: "General Professional",
+    goal: "Show credibility",
+    tone: "Professional"
+  });
+  const [smartSetupPreview, setSmartSetupPreview] = useState(null);
+  const [polishPreview, setPolishPreview] = useState(null);
   const [savedVersions, setSavedVersions] = useState(() => {
     try {
       const stored = window.localStorage.getItem(VERSION_STORAGE_KEY);
@@ -91,6 +114,8 @@ export default function BuilderPage() {
   const artifacts = useMemo(() => generateSignatureArtifacts(draft), [draft]);
   const isFree = artifacts.effectiveDraft.tier === "free";
   const showAutoLayoutNotice = draft.layout === "mobile-compact" && draft.layoutAutoSelected;
+  const healthScore = useMemo(() => evaluateSignatureHealth(artifacts.effectiveDraft), [artifacts.effectiveDraft]);
+  const compatibilityChecklist = useMemo(() => buildCompatibilityChecklist(artifacts.effectiveDraft), [artifacts.effectiveDraft]);
   const templatePreviewMap = useMemo(
     () =>
       Object.fromEntries(
@@ -279,15 +304,70 @@ export default function BuilderPage() {
     }));
   }
 
+  function handleGenerateSmartSetup() {
+    setSmartSetupPreview(buildSmartSetupRecommendation(draft, smartSetup));
+  }
+
+  function handleApplySmartSetup() {
+    if (!smartSetupPreview) {
+      return;
+    }
+
+    saveCurrentVersion("Before smart setup");
+    setDraft((current) => ({
+      ...current,
+      jobTitle: smartSetupPreview.titleLine || current.jobTitle,
+      ctaText: smartSetupPreview.ctaText || current.ctaText,
+      disclaimer: smartSetupPreview.disclaimer || current.disclaimer,
+      layout: resolveRecommendedLayout(current, smartSetupPreview.layout),
+      layoutManuallySelected: true,
+      layoutAutoSelected: false
+    }));
+    setCopyMessage("Smart setup applied.");
+    setMobileWorkspaceTab("Preview");
+  }
+
+  function handleGeneratePolish() {
+    setPolishPreview(buildPolishRecommendation(draft));
+  }
+
+  function handleApplyPolish() {
+    if (!polishPreview || isFree) {
+      return;
+    }
+
+    saveCurrentVersion("Before one-click polish");
+    setDraft((current) => ({
+      ...current,
+      jobTitle: polishPreview.jobTitle,
+      companyName: polishPreview.companyName,
+      ctaText: polishPreview.ctaText,
+      disclaimer: polishPreview.disclaimer,
+      layout: resolveRecommendedLayout(current, polishPreview.layout),
+      layoutManuallySelected: true,
+      layoutAutoSelected: false
+    }));
+    setCopyMessage("One-click polish applied.");
+    setMobileWorkspaceTab("Preview");
+  }
+
   const contentEditor = (
     <SignatureForm
       draft={draft}
+      compatibilityChecklist={compatibilityChecklist}
+      healthScore={healthScore}
+      smartSetup={smartSetup}
+      smartSetupPreview={smartSetupPreview}
+      smartSetupOptions={{ industries: INDUSTRY_OPTIONS, goals: GOAL_OPTIONS, tones: TONE_OPTIONS }}
       onApplySampleProfile={applySampleProfile}
+      onApplySmartSetup={handleApplySmartSetup}
       onFieldChange={updateField}
       onColorChange={(value) => updateField("brandColor", value)}
+      onGenerateSmartSetup={handleGenerateSmartSetup}
       onTierChange={handleTierChange}
       onFileSelect={readFileAsDataUrl}
       onFileRemove={(field) => updateField(field, "")}
+      onSmartSetupChange={(key, value) => setSmartSetup((current) => ({ ...current, [key]: value }))}
     />
   );
 
@@ -298,6 +378,23 @@ export default function BuilderPage() {
           <p className="eyebrow">Style</p>
           <h3>Fine-tune the signature</h3>
         </div>
+      </div>
+      <div className="workspace-style-quick-grid">
+        {TEMPLATE_OPTIONS.map((option) => {
+          const locked = isFree && option.pro;
+          const active = artifacts.effectiveDraft.layout === option.value;
+          return (
+            <button
+              key={option.value}
+              className={`button ${active ? "button-primary" : locked ? "button-locked" : "button-secondary"} workspace-style-chip`}
+              disabled={locked}
+              type="button"
+              onClick={() => handleLayoutChange(option.value)}
+            >
+              {option.label}
+            </button>
+          );
+        })}
       </div>
       <div className="field-grid">
         <label className="field">
@@ -334,6 +431,16 @@ export default function BuilderPage() {
           <small className="locked-copy">
             {isFree ? "Free Mode supports Small, Medium, and Large. Extra Large and Custom are Pro features." : "Logo size updates the live preview and copied signature."}
           </small>
+        </label>
+
+        <label className="field">
+          <span>Logo shape</span>
+          <select disabled={isFree} value={artifacts.effectiveDraft.logoShape} onChange={(event) => updateField("logoShape", event.target.value)}>
+            <option value="rounded">Rounded</option>
+            <option value="square">Square</option>
+            <option value="circle">Circle</option>
+          </select>
+          <small className="locked-copy">{isFree ? "Logo shape is a Pro customization feature." : "Shape styling updates the preview and export together."}</small>
         </label>
 
         {artifacts.effectiveDraft.logoSize === "custom" ? (
@@ -404,6 +511,55 @@ export default function BuilderPage() {
         }}
         onSaveVersion={saveCurrentVersion}
       />
+
+      <section className="panel workspace-panel-section">
+        <div className="panel-header">
+          <div>
+            <p className="eyebrow">One-click polish</p>
+            <h2>Clean up the signature in one pass</h2>
+          </div>
+        </div>
+        {isFree ? (
+          <div className="locked-banner">
+            One-click polish is a Pro feature. Upgrade to tighten wording, improve CTA copy, and recommend a cleaner layout.
+          </div>
+        ) : (
+          <>
+            <p className="support-copy">Review a cleaner, shorter version before applying anything to your live signature.</p>
+            <div className="button-row">
+              <button className="button button-secondary" type="button" onClick={handleGeneratePolish}>
+                Preview One-click Polish
+              </button>
+              {polishPreview ? (
+                <button className="button button-primary" type="button" onClick={handleApplyPolish}>
+                  Apply One-click Polish
+                </button>
+              ) : null}
+            </div>
+            {polishPreview ? (
+              <div className="suggestion-card">
+                <div>
+                  <span className="suggestion-label">Polished title</span>
+                  <strong>{[polishPreview.jobTitle, polishPreview.companyName].filter(Boolean).join(" | ")}</strong>
+                </div>
+                <div>
+                  <span className="suggestion-label">Polished CTA</span>
+                  <p>{polishPreview.ctaText}</p>
+                </div>
+                <div>
+                  <span className="suggestion-label">Polished disclaimer</span>
+                  <p>{polishPreview.disclaimer}</p>
+                </div>
+                <div>
+                  <span className="suggestion-label">Recommended layout</span>
+                  <p>{lookupTemplateLabel(polishPreview.layout)}</p>
+                </div>
+                <p className="support-copy">{polishPreview.note}</p>
+              </div>
+            ) : null}
+          </>
+        )}
+      </section>
 
       <section className="panel workspace-history-panel">
         <div className="panel-header">
@@ -492,6 +648,13 @@ export default function BuilderPage() {
           </button>
           <p className="support-copy">Reset: clears the current draft and starts over.</p>
         </div>
+
+        <div className="export-action-card">
+          <Link className="button button-secondary" to="/install">
+            Install help
+          </Link>
+          <p className="support-copy">Install help: step-by-step Gmail, Outlook, Apple Mail, Yahoo, and general HTML instructions.</p>
+        </div>
       </div>
       <p className="support-copy">
         Use Copy Signature for Gmail, Outlook, Apple Mail, and Yahoo. Do not paste raw HTML into your email settings unless the platform specifically asks for HTML.
@@ -566,12 +729,9 @@ export default function BuilderPage() {
               const active = artifacts.effectiveDraft.layout === template.value;
               const templatePreview = templatePreviewMap[template.value];
               return (
-                <button
+                <article
                   key={template.value}
                   className={`template-card workspace-template-card ${active ? "template-card-active" : ""} ${locked ? "template-card-locked" : ""}`}
-                  disabled={locked}
-                  type="button"
-                  onClick={() => handleLayoutChange(template.value)}
                 >
                   <div className="workspace-template-card-head">
                     <div className="workspace-template-copy">
@@ -596,7 +756,15 @@ export default function BuilderPage() {
                       <span>{template.cta}</span>
                     </div>
                   </div>
-                </button>
+                  <button
+                    className={`button ${active ? "button-primary" : locked ? "button-locked" : "button-secondary"} workspace-template-action`}
+                    disabled={locked}
+                    type="button"
+                    onClick={() => handleLayoutChange(template.value)}
+                  >
+                    {locked ? "Pro style" : active ? "Selected style" : "Use this style"}
+                  </button>
+                </article>
               );
             })}
           </div>
@@ -660,6 +828,234 @@ function buildTemplatePreviewDraft(template, draft) {
     showDivider: template.value === "mobile-compact" ? false : draft.showDivider,
     includeBranding: template.pro ? false : draft.tier === "free" ? true : draft.includeBranding
   };
+}
+
+function resolveRecommendedLayout(draft, recommendedLayout) {
+  if (draft.tier !== "pro" && ["corporate", "premium-split"].includes(recommendedLayout)) {
+    return "classic";
+  }
+
+  return recommendedLayout;
+}
+
+function lookupTemplateLabel(layout) {
+  return TEMPLATE_OPTIONS.find((template) => template.value === layout)?.label || "Professional Classic";
+}
+
+function buildSmartSetupRecommendation(draft, smartSetup) {
+  const industryMap = {
+    "Contractor / Trades": {
+      layout: "classic",
+      titleLine: draft.jobTitle || "Licensed General Contractor",
+      ctaText: "Request a project quote",
+      disclaimer: "Estimates and site recommendations are confirmed after a project review."
+    },
+    "Safety Consulting": {
+      layout: "corporate",
+      titleLine: draft.jobTitle || "HSE Director",
+      ctaText: "Book a compliance call",
+      disclaimer: "Safety recommendations are tailored after a documented assessment."
+    },
+    "Real Estate": {
+      layout: "premium-split",
+      titleLine: draft.jobTitle || "Real Estate Advisor",
+      ctaText: "View current listings",
+      disclaimer: "Availability and listing details may change without notice."
+    },
+    "Law / Legal": {
+      layout: "corporate",
+      titleLine: draft.jobTitle || "Legal Counsel",
+      ctaText: "Schedule a confidential consultation",
+      disclaimer: "This email does not create a solicitor-client relationship."
+    },
+    "Finance / Insurance": {
+      layout: "corporate",
+      titleLine: draft.jobTitle || "Senior Advisor",
+      ctaText: "Review coverage options",
+      disclaimer: "Coverage and financial products are subject to review and approval."
+    },
+    "Medical / Health": {
+      layout: "minimal",
+      titleLine: draft.jobTitle || "Patient Care Coordinator",
+      ctaText: "Book an appointment",
+      disclaimer: "Please do not send urgent medical concerns by email."
+    },
+    "Fitness / Coaching": {
+      layout: "minimal",
+      titleLine: draft.jobTitle || "Performance Coach",
+      ctaText: "Start your program",
+      disclaimer: "Results vary based on commitment, training history, and health status."
+    },
+    "Tech / SaaS": {
+      layout: "minimal",
+      titleLine: draft.jobTitle || "Founder & CEO",
+      ctaText: "See the platform in action",
+      disclaimer: "Timelines and roadmap details may evolve as the product grows."
+    },
+    "Retail / Ecommerce": {
+      layout: "classic",
+      titleLine: draft.jobTitle || "Brand Manager",
+      ctaText: "Shop the latest collection",
+      disclaimer: "Inventory and promotional availability may change without notice."
+    },
+    "Creative / Design": {
+      layout: "premium-split",
+      titleLine: draft.jobTitle || "Creative Director",
+      ctaText: "Review our latest work",
+      disclaimer: "Project timelines and availability depend on current production capacity."
+    },
+    "General Professional": {
+      layout: "classic",
+      titleLine: draft.jobTitle || "Director",
+      ctaText: "Book a quick introduction",
+      disclaimer: "Response timelines may vary based on current client commitments."
+    }
+  };
+
+  const base = industryMap[smartSetup.industry] || industryMap["General Professional"];
+  const toneAdjustments = {
+    Friendly: "with a warm, approachable feel",
+    Premium: "with polished premium wording",
+    Contractor: "with direct service-first wording",
+    Minimal: "with cleaner, lighter copy",
+    Professional: "with clear professional wording"
+  };
+
+  const goalAdjustments = {
+    "Book calls": "Optimized to make booking the next conversation easy.",
+    "Get quotes": "Optimized to encourage quote or estimate requests.",
+    "Show credibility": "Optimized to reinforce trust and professionalism.",
+    "Drive website visits": "Optimized to send recipients to the website first."
+  };
+
+  return {
+    ...base,
+    layout: smartSetup.goal === "Drive website visits" && base.layout === "classic" ? "minimal" : base.layout,
+    ctaText:
+      smartSetup.goal === "Drive website visits"
+        ? "Visit our website"
+        : smartSetup.goal === "Book calls"
+          ? "Schedule a quick call"
+          : smartSetup.goal === "Get quotes"
+            ? "Request a quote"
+            : base.ctaText,
+    note: `${toneAdjustments[smartSetup.tone]} ${goalAdjustments[smartSetup.goal]}`,
+    templateLabel: lookupTemplateLabel(base.layout)
+  };
+}
+
+function evaluateSignatureHealth(draft) {
+  const tips = [];
+  let score = 0;
+
+  if (draft.fullName?.trim()) {
+    score += 18;
+  } else {
+    tips.push("Add a clear full name so the signature feels credible immediately.");
+  }
+
+  if (draft.jobTitle?.trim() && draft.companyName?.trim()) {
+    score += 18;
+  } else {
+    tips.push("Include both a title and company so the signature reads more professional.");
+  }
+
+  if (draft.phone?.trim() && draft.email?.trim()) {
+    score += 18;
+  } else {
+    tips.push("Include both phone and email to make contact easier across devices.");
+  }
+
+  if (draft.website?.trim() || draft.ctaText?.trim()) {
+    score += 14;
+  } else {
+    tips.push("Add a website or CTA so the signature guides the next action.");
+  }
+
+  if (draft.logoDataUrl) {
+    score += 12;
+  } else {
+    tips.push("A logo helps the signature feel more polished and brand-aware.");
+  }
+
+  const titleLength = `${draft.jobTitle || ""} ${draft.companyName || ""}`.trim().length;
+  if (titleLength <= 52) {
+    score += 10;
+  } else {
+    tips.push("Shorten the title/company line to keep the signature cleaner on mobile.");
+  }
+
+  if (draft.layout === "mobile-compact" || titleLength < 42) {
+    score += 10;
+  } else {
+    tips.push("Mobile Compact is recommended when the title/company line starts to wrap.");
+  }
+
+  return {
+    score: Math.min(100, score),
+    tips: tips.slice(0, 3)
+  };
+}
+
+function buildCompatibilityChecklist(draft) {
+  return [
+    { label: "Gmail ready", passed: true },
+    { label: "Outlook ready", passed: true },
+    { label: "Apple Mail ready", passed: true },
+    { label: "Mobile compact available", passed: true },
+    { label: "No visible borders", passed: true },
+    { label: "Clickable links", passed: Boolean(draft.phone || draft.email || draft.website) }
+  ];
+}
+
+function buildPolishRecommendation(draft) {
+  const cleanedTitle = shortenCopy(draft.jobTitle, 34);
+  const cleanedCompany = shortenCopy(draft.companyName, 28);
+  const compactTitleLength = `${cleanedTitle} ${cleanedCompany}`.trim().length;
+
+  return {
+    jobTitle: cleanedTitle,
+    companyName: cleanedCompany,
+    ctaText: polishCta(draft.ctaText),
+    disclaimer: shortenCopy(draft.disclaimer, 82),
+    layout: compactTitleLength > 44 ? "mobile-compact" : draft.layout === "classic" ? "minimal" : draft.layout,
+    note: compactTitleLength > 44
+      ? "This pass shortens the top line and recommends Mobile Compact for cleaner phone rendering."
+      : "This pass tightens the title, CTA, and disclaimer while keeping the signature clean."
+  };
+}
+
+function polishCta(value) {
+  const raw = String(value || "").trim();
+  if (!raw) {
+    return "Book a quick call";
+  }
+
+  if (/schedule|book/i.test(raw)) {
+    return "Book a quick call";
+  }
+
+  if (/quote|estimate/i.test(raw)) {
+    return "Request a quote";
+  }
+
+  if (/website|visit|work/i.test(raw)) {
+    return "See our latest work";
+  }
+
+  return shortenCopy(raw, 28);
+}
+
+function shortenCopy(value, limit) {
+  const normalized = String(value || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (normalized.length <= limit) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, Math.max(0, limit - 1)).trim()}…`;
 }
 
 function loadInitialDraft() {

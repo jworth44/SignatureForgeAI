@@ -79,7 +79,7 @@ export default function AiSuggestionPanel({ draft, onApplySuggestions, onSaveVer
       <div className="panel-header">
         <div>
           <p className="eyebrow">AI assistant panel</p>
-          <h2>Generate signature suggestions</h2>
+          <h2>Built-in smart suggestions</h2>
         </div>
       </div>
 
@@ -125,11 +125,11 @@ export default function AiSuggestionPanel({ draft, onApplySuggestions, onSaveVer
         </label>
       </div>
 
-      <button className="button button-primary button-inline" disabled={loading || isFree} type="button" onClick={handleGenerate}>
+      <button className={`button ${isFree ? "button-locked" : "button-primary"} button-inline`} disabled={loading || isFree} type="button" onClick={handleGenerate}>
         {loading ? "Generating..." : "Generate Signature Suggestions"}
       </button>
 
-      {isFree ? <p className="locked-copy">Advanced AI suggestions are available in Pro Mode.</p> : null}
+      {isFree ? <p className="locked-copy">Advanced AI suggestions are available in Pro Mode.</p> : <p className="support-copy">Built-in smart suggestions help you improve wording without auto-overwriting the current signature.</p>}
       {error ? <p className="error-copy">{error}</p> : null}
 
       {suggestions ? (

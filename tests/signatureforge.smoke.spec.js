@@ -15,8 +15,13 @@ test.describe("Signature Pilot AI smoke tests", () => {
     await expect(page.locator(".workspace-controls")).toBeVisible();
     await expect(page.locator(".workspace-template-card")).toHaveCount(5);
     await expect(page.getByRole("button", { name: /Professional Classic/ }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Use this style" }).first()).toBeVisible();
     await expect(page.locator(".signature-preview-surface")).toContainText("Created with Signature Pilot AI");
-    await expect(page.getByText("Logo Pilot AI will help you create, refine, and blend logo concepts.")).toBeVisible();
+    await expect(page.getByText("Need a logo? Try Logo Pilot AI for concept creation, refinement, and blending.")).toBeVisible();
+    await expect(page.getByText("Signature Health Score")).toBeVisible();
+    await expect(page.getByText("Client Compatibility Checklist")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Upload your logo" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Smart Setup" })).toBeVisible();
 
     await page.locator(".workspace-control-tabs").getByRole("button", { name: "Style", exact: true }).click();
     await expect(page.locator('[aria-label="Preview layout"]')).toBeVisible();
@@ -59,10 +64,17 @@ test.describe("Signature Pilot AI smoke tests", () => {
     expect(clipboardPayload.html).toContain('href="tel:');
     expect(clipboardPayload.html).not.toContain("border-left");
     expect(clipboardPayload.text).toContain("Signature Pilot AI");
+
+    await page.locator(".workspace-control-tabs").getByRole("button", { name: "AI", exact: true }).click();
+    await expect(page.getByText("One-click polish is a Pro feature.")).toBeVisible();
   });
 
   test("Pro Mode unlocks workspace controls and exports clean HTML", async ({ page }) => {
     await page.locator('.workspace-topbar select').selectOption("pro");
+    await page.locator(".workspace-control-tabs").getByRole("button", { name: "Content", exact: true }).click();
+    await page.getByRole("button", { name: "Preview Smart Setup" }).click();
+    await expect(page.getByText("Recommended template")).toBeVisible();
+    await page.getByRole("button", { name: "Apply Smart Setup" }).click();
 
     await page.locator(".workspace-control-tabs").getByRole("button", { name: "Style", exact: true }).click();
     await expect(page.locator('[aria-label="Preview layout"]')).toBeVisible();
@@ -70,6 +82,7 @@ test.describe("Signature Pilot AI smoke tests", () => {
     await expect(page.locator('[aria-label="Preview branding"]')).toBeEnabled();
     await expect(page.locator('[aria-label="Preview logo size"] option[value="extra-large"]')).not.toHaveAttribute("disabled", "");
     await expect(page.locator('[aria-label="Preview logo size"] option[value="custom"]')).not.toHaveAttribute("disabled", "");
+    await expect(page.locator('select').filter({ has: page.locator('option[value="circle"]') })).toBeVisible();
 
     await page.locator('[aria-label="Preview layout"]').selectOption("premium-split");
     await page.locator('[aria-label="Preview divider"]').selectOption("on");
@@ -80,6 +93,12 @@ test.describe("Signature Pilot AI smoke tests", () => {
     await expect(page.locator(".preview-meta")).toContainText("Premium");
     await expect(page.locator(".preview-meta")).toContainText("Divider on");
     await expect(page.locator(".signature-preview-surface")).not.toContainText("Created with Signature Pilot AI");
+
+    await page.locator(".workspace-control-tabs").getByRole("button", { name: "AI", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Preview One-click Polish" })).toBeVisible();
+    await page.getByRole("button", { name: "Preview One-click Polish" }).click();
+    await expect(page.getByText("Polished title")).toBeVisible();
+    await page.getByRole("button", { name: "Apply One-click Polish" }).click();
 
     await page.locator(".workspace-control-tabs").getByRole("button", { name: "Content", exact: true }).click();
 
@@ -92,7 +111,7 @@ test.describe("Signature Pilot AI smoke tests", () => {
       mimeType: "image/png",
       buffer: logoBuffer
     });
-    await expect(page.getByAltText("Logo upload")).toBeVisible();
+    await expect(page.getByAltText("Upload your logo")).toBeVisible();
 
     await page.locator(".workspace-control-tabs").getByRole("button", { name: "Export", exact: true }).click();
     await expect(page.getByRole("button", { name: "Copy Raw HTML" })).toBeVisible();
@@ -150,6 +169,7 @@ test.describe("Signature Pilot AI smoke tests", () => {
     await page.locator('.workspace-topbar select').selectOption("pro");
     await page.locator(".workspace-control-tabs").getByRole("button", { name: "Style", exact: true }).click();
     const layouts = ["classic", "minimal", "corporate", "premium-split", "mobile-compact"];
+    const previews = [];
 
     for (const layout of layouts) {
       await page.locator('[aria-label="Preview layout"]').selectOption(layout);
@@ -164,7 +184,10 @@ test.describe("Signature Pilot AI smoke tests", () => {
       expect(previewHtml).toContain("border-collapse:collapse");
       expect(previewHtml).toContain("border:none");
       expect(previewHtml).not.toContain("border-left");
+      previews.push(previewHtml);
     }
+
+    expect(new Set(previews).size).toBeGreaterThan(2);
   });
 
   test("Desktop builder fits the viewport without horizontal overflow", async ({ page }) => {

@@ -119,16 +119,7 @@ img {
 .brand-lockup {
   min-width: 0;
   align-items: center;
-  gap: 0.85rem;
-}
-
-.brand-lockup strong,
-.brand-lockup small {
-  display: block;
-}
-
-.brand-lockup small {
-  color: var(--muted);
+  flex: 0 1 auto;
 }
 
 .brand-mark,
@@ -143,6 +134,14 @@ img {
   font-weight: 800;
   background: linear-gradient(135deg, var(--blue), var(--purple));
   box-shadow: 0 14px 30px rgba(38, 99, 255, 0.22);
+}
+
+.brand-logo-image {
+  display: block;
+  width: auto;
+  height: 46px;
+  max-width: min(30vw, 310px);
+  object-fit: contain;
 }
 
 .topbar-nav,
@@ -2218,7 +2217,7 @@ h3 {
   }
 
   .brand-lockup {
-    gap: 0.7rem;
+    min-width: 0;
   }
 
   .brand-mark,
@@ -2228,14 +2227,9 @@ h3 {
     border-radius: 12px;
   }
 
-  .brand-lockup strong {
-    font-size: 0.95rem;
-    line-height: 1.2;
-  }
-
-  .brand-lockup small {
-    font-size: 0.78rem;
-    line-height: 1.35;
+  .brand-logo-image {
+    height: 38px;
+    max-width: min(58vw, 250px);
   }
 
   .topbar-nav,

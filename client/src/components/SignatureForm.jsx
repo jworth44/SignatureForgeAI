@@ -90,7 +90,7 @@ export default function SignatureForm({
               <option value="compact">Compact</option>
               <option value="premium-split">Premium Split Line</option>
             </select>
-            {isFree ? <small className="locked-copy">Free Mode uses the basic SignatureForge AI layout.</small> : null}
+            {isFree ? <small className="locked-copy">Free Mode uses the basic Signature Pilot AI layout.</small> : null}
           </label>
 
           <label className="field">
@@ -129,7 +129,7 @@ export default function SignatureForm({
           </label>
 
           <label className="field field-checkbox">
-            <span>Remove SignatureForge AI branding</span>
+            <span>Remove Signature Pilot AI branding</span>
             <input
               checked={!draft.includeBranding}
               disabled={isFree}

@@ -21,7 +21,7 @@ test.describe("Signature Pilot AI smoke tests", () => {
 
     await expect(page.locator('label:has-text("Layout") select')).toBeDisabled();
     await expect(page.locator('label:has-text("Vertical divider") input')).toBeDisabled();
-    await expect(page.locator('label:has-text("Remove SignatureForge AI branding") input')).toBeDisabled();
+    await expect(page.locator('label:has-text("Remove Signature Pilot AI branding") input')).toBeDisabled();
 
     await page.getByRole("button", { name: "Copy Signature" }).click();
     await expect(page.getByRole("button", { name: "Copied!" })).toBeVisible();
@@ -47,10 +47,13 @@ test.describe("Signature Pilot AI smoke tests", () => {
     });
 
     expect(clipboardPayload.types).toContain("text/html");
+    expect(clipboardPayload.html).toContain('<table cellpadding="0" cellspacing="0" border="0"');
     expect(clipboardPayload.html).toContain('colspan="2"');
     expect(clipboardPayload.html).toContain("Created with");
     expect(clipboardPayload.html).toContain("Signature Pilot AI");
     expect(clipboardPayload.html).toContain('https://signature-forge-ai.vercel.app');
+    expect(clipboardPayload.html).toContain("border:none");
+    expect(clipboardPayload.html).not.toContain("border-top:");
     expect(clipboardPayload.text).toContain("Signature Pilot AI");
   });
 
@@ -59,13 +62,13 @@ test.describe("Signature Pilot AI smoke tests", () => {
 
     await expect(page.locator('label:has-text("Layout") select')).toBeEnabled();
     await expect(page.locator('label:has-text("Vertical divider") input')).toBeEnabled();
-    await expect(page.locator('label:has-text("Remove SignatureForge AI branding") input')).toBeEnabled();
+    await expect(page.locator('label:has-text("Remove Signature Pilot AI branding") input')).toBeEnabled();
     await expect(page.getByRole("button", { name: "Copy Signature" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Copy Raw HTML" })).toBeVisible();
     await expect(page.locator('label:has-text("Logo size") select option[value="extra-large"]')).not.toHaveAttribute("disabled", "");
     await expect(page.locator('label:has-text("Logo size") select option[value="custom"]')).not.toHaveAttribute("disabled", "");
 
-    await page.locator('label:has-text("Remove SignatureForge AI branding") input').check();
+    await page.locator('label:has-text("Remove Signature Pilot AI branding") input').check();
     await page.locator('label:has-text("Logo size") select').selectOption("custom");
     await page.locator('label:has-text("Custom logo width") input').fill("140");
     await page.getByRole("button", { name: "Copy Raw HTML" }).click();
@@ -82,11 +85,41 @@ test.describe("Signature Pilot AI smoke tests", () => {
 
     expect(previewHtml).toContain('href="tel:');
     expect(previewHtml).toContain('href="mailto:');
+    expect(previewHtml).toContain('border="0"');
     expect(previewHtml).toContain('border-collapse:collapse');
+    expect(previewHtml).toContain("border:none");
+    expect(previewHtml).toContain("mso-table-lspace:0pt");
     expect(previewHtml).not.toContain('border="1"');
+    expect(previewHtml).not.toContain("border-top:");
     expect(previewHtml).not.toContain("border:1px solid #");
 
     const hasHorizontalOverflow = await preview.evaluate((element) => element.scrollWidth > element.clientWidth);
     expect(hasHorizontalOverflow).toBe(false);
+  });
+
+  test("Homepage stays within the viewport on mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/", { waitUntil: "networkidle" });
+
+    const pageOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+    expect(pageOverflow).toBe(false);
+
+    const hero = page.locator(".hero-card");
+    await expect(hero).toBeVisible();
+    await expect(hero.getByRole("link", { name: "Start Free" })).toBeVisible();
+  });
+
+  test("Builder stays usable on mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/builder", { waitUntil: "networkidle" });
+
+    const pageOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+    expect(pageOverflow).toBe(false);
+
+    await expect(page.locator(".builder-layout")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Copy Signature" })).toBeVisible();
+
+    const previewOverflow = await page.locator(".signature-preview-surface").evaluate((element) => element.scrollWidth > element.clientWidth);
+    expect(previewOverflow).toBe(false);
   });
 });

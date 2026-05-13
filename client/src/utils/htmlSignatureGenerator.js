@@ -113,70 +113,76 @@ export function generateSignatureHtml({ draft, tier, includeBranding }) {
     : "";
   const columnCount = sanitized.showDivider ? 3 : 2;
   const dividerMarkup = sanitized.showDivider
-    ? `<td style="width:18px;padding:0 12px;border-left:1px solid ${fadeColor(brandColor, 0.32)};"></td>`
+    ? `<td valign="top" style="${cellResetStyle()}width:18px;padding:0 12px;"><div style="width:1px;height:100%;min-height:96px;background:${fadeColor(brandColor, 0.24)};font-size:0;line-height:0;">&nbsp;</div></td>`
     : "";
   const meta = getLayoutMeta(sanitized.layout);
   const shouldIncludeBranding = sanitized.tier === "free" ? true : Boolean(sanitized.includeBranding);
   const brandingRow = shouldIncludeBranding
     ? `
       <tr>
-        <td colspan="${columnCount}" style="padding-top:12px;">
-          <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border-spacing:0;width:100%;background:${fadeColor(brandColor, 0.06)};border-top:1px solid ${fadeColor(brandColor, 0.2)};">
+        <td colspan="${columnCount}" style="${cellResetStyle()}padding-top:12px;">
+          <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}width:100%;background:${fadeColor(brandColor, 0.06)};border-radius:12px;">
+            <tbody>
             <tr>
-              <td style="padding:10px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:16px;color:#6b7280;">
+              <td style="${cellResetStyle()}padding:10px 12px 0 12px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:16px;color:#6b7280;">
                 Created with <a href="https://signature-forge-ai.vercel.app" style="color:${brandColor};text-decoration:none;font-weight:700;">Signature Pilot AI</a>
               </td>
             </tr>
             <tr>
-              <td style="padding:2px 0 10px 0;font-family:Arial,Helvetica,sans-serif;font-size:10px;line-height:15px;color:#7b8498;">
+              <td style="${cellResetStyle()}padding:2px 12px 10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:10px;line-height:15px;color:#7b8498;">
                 Free signature powered by <a href="https://signature-forge-ai.vercel.app" style="color:${brandColor};text-decoration:none;font-weight:700;">Signature Pilot AI</a>
               </td>
             </tr>
+            </tbody>
           </table>
         </td>
       </tr>`
     : "";
   const premiumRibbon = sanitized.layout === "premium-split"
-    ? `<tr><td colspan="${columnCount}" style="padding-bottom:10px;"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Premium split layout</span></td></tr>`
+    ? `<tr><td colspan="${columnCount}" style="${cellResetStyle()}padding-bottom:10px;"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Premium split layout</span></td></tr>`
     : "";
 
   return `
-<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border-spacing:0;font-family:Arial,Helvetica,sans-serif;color:#111827;">
+<table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}font-family:Arial,Helvetica,sans-serif;color:#111827;">
+  <tbody>
   ${premiumRibbon}
   <tr>
-    <td valign="top" style="padding:0;">
+    <td valign="top" style="${cellResetStyle()}padding:0;">
       ${logoMarkup}
       ${photoMarkup}
     </td>
     ${dividerMarkup}
-    <td valign="top" style="padding:0 0 0 12px;">
-      <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border-spacing:0;">
+    <td valign="top" style="${cellResetStyle()}padding:0 0 0 12px;">
+      <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}">
+        <tbody>
         <tr>
-          <td style="font-size:${sanitized.layout === "compact" ? 18 : 22}px;line-height:${sanitized.layout === "compact" ? 22 : 28}px;font-weight:700;color:#111827;padding:0 0 2px 0;">
+          <td style="${cellResetStyle()}font-size:${sanitized.layout === "compact" ? 18 : 22}px;line-height:${sanitized.layout === "compact" ? 22 : 28}px;font-weight:700;color:#111827;padding:0 0 2px 0;">
             ${escapeHtml(sanitized.fullName)}
           </td>
         </tr>
         <tr>
-          <td style="font-size:14px;line-height:20px;font-weight:${meta.accentWeight};color:${brandColor};padding:0 0 3px 0;">
+          <td style="${cellResetStyle()}font-size:14px;line-height:20px;font-weight:${meta.accentWeight};color:${brandColor};padding:0 0 3px 0;">
             ${escapeHtml(buildTitleLine(sanitized))}
           </td>
         </tr>
         ${contactRows}
         ${socialRows}
         <tr>
-          <td style="padding-top:10px;font-size:12px;line-height:18px;color:#374151;">
+          <td style="${cellResetStyle()}padding-top:10px;font-size:12px;line-height:18px;color:#374151;">
             <a href="${ensureProtocol(sanitized.website)}" style="color:${brandColor};text-decoration:none;font-weight:600;">${escapeHtml(sanitized.ctaText || meta.label)}</a>
           </td>
         </tr>
         <tr>
-          <td style="padding-top:8px;font-size:11px;line-height:16px;color:#6b7280;">
+          <td style="${cellResetStyle()}padding-top:8px;font-size:11px;line-height:16px;color:#6b7280;">
             ${escapeHtml(sanitized.disclaimer)}
           </td>
         </tr>
+        </tbody>
       </table>
     </td>
   </tr>
   ${brandingRow}
+  </tbody>
 </table>`.trim();
 }
 
@@ -240,7 +246,7 @@ function buildSocialRows(draft) {
 function buildRow(label, value) {
   return `
     <tr>
-      <td style="padding-top:4px;font-size:12px;line-height:18px;color:#4b5563;">
+      <td style="${cellResetStyle()}padding-top:4px;font-size:12px;line-height:18px;color:#4b5563;">
         <span style="display:inline-block;min-width:62px;font-weight:700;color:#111827;">${label}:</span> ${value}
       </td>
     </tr>`;
@@ -253,17 +259,19 @@ function buildImageMarkup({ source, alt, size, brandColor, type }) {
         src="${source}"
         alt="${escapeAttribute(alt)}"
         width="${size}"
-        style="display:block;width:${size}px;height:auto;max-width:${size}px;border:0;outline:none;text-decoration:none;border-radius:${type === "photo" ? "999px" : "16px"};object-fit:cover;background:#ffffff;"
+        style="display:block;width:${size}px;height:auto;max-width:${size}px;border:0;border:none;outline:none;box-shadow:none;text-decoration:none;border-radius:${type === "photo" ? "999px" : "16px"};object-fit:cover;background:#ffffff;"
       />`;
   }
 
   return `
-    <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;border-spacing:0;">
+    <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}">
+      <tbody>
       <tr>
-        <td align="center" valign="middle" width="${size}" height="${size}" style="width:${size}px;height:${size}px;border-radius:${type === "photo" ? "999px" : "16px"};background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-family:Arial,Helvetica,sans-serif;font-size:${Math.max(14, Math.round(size / 3.1))}px;font-weight:700;">
+        <td align="center" valign="middle" width="${size}" height="${size}" style="${cellResetStyle()}width:${size}px;height:${size}px;border-radius:${type === "photo" ? "999px" : "16px"};background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-family:Arial,Helvetica,sans-serif;font-size:${Math.max(14, Math.round(size / 3.1))}px;font-weight:700;">
           ${escapeHtml(initialsFromAlt(alt))}
         </td>
       </tr>
+      </tbody>
     </table>`;
 }
 
@@ -283,6 +291,14 @@ function normalizedColor(value) {
 
 function linkStyle(color) {
   return `color:${normalizedColor(color)};text-decoration:none;`;
+}
+
+function tableResetStyle() {
+  return "border:0;border:none;outline:none;box-shadow:none;border-collapse:collapse;border-spacing:0;mso-table-lspace:0pt;mso-table-rspace:0pt;";
+}
+
+function cellResetStyle() {
+  return "border:0;border:none;outline:none;box-shadow:none;";
 }
 
 function stripProtocol(value) {

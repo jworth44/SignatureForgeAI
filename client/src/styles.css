@@ -21,6 +21,8 @@
 }
 
 html {
+  width: 100%;
+  max-width: 100%;
   background:
     radial-gradient(circle at top left, rgba(38, 99, 255, 0.14), transparent 26%),
     radial-gradient(circle at top right, rgba(139, 109, 255, 0.12), transparent 26%),
@@ -29,6 +31,8 @@ html {
 
 body {
   margin: 0;
+  width: 100%;
+  max-width: 100%;
   min-height: 100vh;
   font-family: "Inter", "Segoe UI", sans-serif;
   color: var(--ink);
@@ -55,6 +59,8 @@ img {
 }
 
 #root {
+  width: 100%;
+  max-width: 100%;
   min-height: 100vh;
 }
 
@@ -94,6 +100,8 @@ img {
   position: sticky;
   top: 0;
   z-index: 10;
+  width: 100%;
+  max-width: 100%;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
@@ -104,6 +112,7 @@ img {
 }
 
 .brand-lockup {
+  min-width: 0;
   align-items: center;
   gap: 0.85rem;
 }
@@ -140,6 +149,14 @@ img {
   gap: 0.75rem;
 }
 
+.topbar-nav,
+.topbar-actions,
+.hero-actions,
+.builder-hero-links,
+.button-row {
+  flex-wrap: wrap;
+}
+
 .topbar-link {
   padding: 0.6rem 0.9rem;
   border-radius: 999px;
@@ -154,6 +171,7 @@ img {
 
 .site-main {
   width: min(1220px, calc(100vw - 2rem));
+  max-width: 100%;
   margin: 0 auto;
   padding: 2rem 0 3rem;
 }
@@ -201,6 +219,7 @@ img {
 }
 
 .hero-card {
+  align-items: center;
   justify-content: space-between;
   padding: 2rem;
   border-radius: 32px;
@@ -210,6 +229,7 @@ img {
 .hero-copy {
   gap: 1rem;
   max-width: 640px;
+  min-width: 0;
 }
 
 .eyebrow {
@@ -343,6 +363,8 @@ h3 {
 
 .hero-preview-card {
   width: min(360px, 100%);
+  max-width: 100%;
+  flex: 0 1 360px;
   padding: 1.2rem;
   background: linear-gradient(180deg, rgba(21, 29, 46, 0.98), rgba(32, 42, 69, 0.94));
   color: #fff;
@@ -445,6 +467,7 @@ h3 {
 
 .builder-layout {
   align-items: start;
+  flex-wrap: wrap;
 }
 
 .builder-left-column {
@@ -478,6 +501,7 @@ h3 {
 
 .field {
   flex: 1 1 220px;
+  min-width: 0;
   display: grid;
   gap: 0.5rem;
 }
@@ -526,6 +550,7 @@ h3 {
 
 .asset-uploader {
   flex: 1 1 240px;
+  min-width: 0;
   display: grid;
   gap: 0.75rem;
   padding: 1rem;
@@ -585,7 +610,7 @@ h3 {
 }
 
 .signature-preview-surface {
-  overflow-x: auto;
+  overflow-x: hidden;
   max-width: 100%;
   padding: 1.25rem;
   border-radius: var(--radius-md);
@@ -595,6 +620,15 @@ h3 {
 
 .signature-preview-surface > table {
   width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+}
+
+.signature-preview-surface td,
+.signature-preview-surface img {
+  max-width: 100%;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .preview-meta {
@@ -682,6 +716,7 @@ h3 {
 
 .button-row .button {
   flex: 1 1 220px;
+  min-width: 0;
 }
 
 @media (max-width: 1100px) {
@@ -699,19 +734,60 @@ h3 {
 }
 
 @media (max-width: 720px) {
+  html,
+  body,
+  #root {
+    overflow-x: hidden;
+  }
+
   .site-main {
-    width: min(100vw, calc(100vw - 1rem));
+    width: calc(100vw - 1rem);
     padding: 1rem 0 2rem;
   }
 
   .topbar {
-    padding: 1rem;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
   }
 
-  .topbar-nav {
-    order: 3;
+  .brand-lockup {
+    gap: 0.7rem;
+  }
+
+  .brand-mark,
+  .preview-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .brand-lockup strong {
+    font-size: 0.95rem;
+    line-height: 1.2;
+  }
+
+  .brand-lockup small {
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .topbar-nav,
+  .topbar-actions {
     width: 100%;
     flex-wrap: wrap;
+  }
+
+  .topbar-link,
+  .topbar-actions .button {
+    flex: 1 1 140px;
+    min-width: 0;
+    text-align: center;
+  }
+
+  .hero-card {
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .hero-card,
@@ -728,7 +804,60 @@ h3 {
     font-size: clamp(2rem, 10vw, 3rem);
   }
 
+  .hero-actions,
+  .builder-hero-links,
+  .button-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero-actions .button,
+  .builder-hero-links .button,
   .button-row .button {
     width: 100%;
+    flex-basis: auto;
+  }
+
+  .hero-preview-card {
+    width: 100%;
+    padding: 1rem;
+  }
+
+  .hero-preview-body {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 0.8rem;
+  }
+
+  .builder-layout,
+  .field-grid,
+  .upload-grid {
+    flex-direction: column;
+  }
+
+  .field,
+  .asset-uploader {
+    width: 100%;
+  }
+
+  .signature-preview-surface {
+    padding: 1rem;
+  }
+
+  .preview-meta,
+  .tab-row {
+    align-items: flex-start;
+  }
+
+  .preview-meta span,
+  .tab-button {
+    width: 100%;
+  }
+
+  .signature-preview-surface > table {
+    font-size: 0.95em;
+  }
+
+  .signature-preview-surface td {
+    min-width: 0;
   }
 }

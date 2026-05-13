@@ -1,5 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
+import brandLogo from "../assets/signature-pilot-ai-logo.png";
 
 const NAV_ITEMS = [
   { to: "/", label: "Home", end: true },
@@ -14,7 +15,7 @@ export default function AppShell({ children }) {
     <div className="site-shell">
       <header className="topbar">
         <NavLink className="brand-lockup" to="/">
-          <img className="brand-logo-image" src="/brand/signature-pilot-ai-logo.png" alt="Signature Pilot AI" />
+          <img className="brand-logo-image" src={brandLogo} alt="Signature Pilot AI" />
         </NavLink>
 
         <nav className="topbar-nav" aria-label="Primary">

@@ -53,12 +53,15 @@ test.describe("Signature Pilot AI smoke tests", () => {
     expect(clipboardPayload.types).toContain("text/html");
     expect(clipboardPayload.html).toContain('<table cellpadding="0" cellspacing="0" border="0"');
     expect(clipboardPayload.html).toContain("max-width:340px");
+    expect(clipboardPayload.html).toContain('<td align="center" valign="top"');
+    expect(clipboardPayload.html).toContain('<td align="center" style="border:0;border:none;outline:none;box-shadow:none;padding:0 0 12px 0;">');
     expect(clipboardPayload.html).toContain("Created with");
     expect(clipboardPayload.html).toContain("Signature Pilot AI");
     expect(clipboardPayload.html).toContain('https://signature-forge-ai.vercel.app');
     expect(clipboardPayload.html).toContain("border:none");
     expect(clipboardPayload.html).not.toContain("border-top:");
     expect(clipboardPayload.html).not.toContain("padding:0 0 0 12px");
+    expect(clipboardPayload.html).not.toContain("min-width:62px");
     expect(clipboardPayload.text).toContain("Signature Pilot AI");
   });
 
@@ -84,6 +87,7 @@ test.describe("Signature Pilot AI smoke tests", () => {
     expect(copiedHtml).not.toContain("Created with Signature Pilot AI");
     expect(copiedHtml).toContain('width="140"');
     expect(copiedHtml).toContain("max-width:340px");
+    expect(copiedHtml).toContain('<td align="center" valign="top"');
   });
 
   test("Generated signature keeps core export and layout rules", async ({ page }) => {

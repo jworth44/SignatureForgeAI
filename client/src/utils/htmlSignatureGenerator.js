@@ -112,25 +112,27 @@ export function generateSignatureHtml({ draft, tier, includeBranding }) {
         type: "photo"
       })
     : "";
+  const isMobileCompact = sanitized.layout === "mobile-compact";
   const columnCount = sanitized.showDivider ? 3 : 2;
   const dividerMarkup = sanitized.showDivider
     ? `<td valign="top" style="${cellResetStyle()}width:18px;padding:0 12px;"><div style="width:1px;height:100%;min-height:96px;background:${fadeColor(brandColor, 0.24)};font-size:0;line-height:0;">&nbsp;</div></td>`
     : "";
   const meta = getLayoutMeta(sanitized.layout);
   const shouldIncludeBranding = sanitized.tier === "free" ? true : Boolean(sanitized.includeBranding);
+  const brandingColumnCount = isMobileCompact ? 1 : columnCount;
   const brandingRow = shouldIncludeBranding
     ? `
       <tr>
-        <td colspan="${columnCount}" style="${cellResetStyle()}padding-top:12px;">
+        <td colspan="${brandingColumnCount}" style="${cellResetStyle()}padding-top:12px;">
           <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}width:100%;background:${fadeColor(brandColor, 0.06)};border-radius:12px;">
             <tbody>
             <tr>
-              <td style="${cellResetStyle()}padding:10px 12px 0 12px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:16px;color:#6b7280;">
+              <td align="${isMobileCompact ? "center" : "left"}" style="${cellResetStyle()}padding:10px 12px 0 12px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:16px;color:#6b7280;">
                 Created with <a href="https://signature-forge-ai.vercel.app" style="color:${brandColor};text-decoration:none;font-weight:700;">Signature Pilot AI</a>
               </td>
             </tr>
             <tr>
-              <td style="${cellResetStyle()}padding:2px 12px 10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:10px;line-height:15px;color:#7b8498;">
+              <td align="${isMobileCompact ? "center" : "left"}" style="${cellResetStyle()}padding:2px 12px 10px 12px;font-family:Arial,Helvetica,sans-serif;font-size:10px;line-height:15px;color:#7b8498;">
                 Free signature powered by <a href="https://signature-forge-ai.vercel.app" style="color:${brandColor};text-decoration:none;font-weight:700;">Signature Pilot AI</a>
               </td>
             </tr>
@@ -143,39 +145,41 @@ export function generateSignatureHtml({ draft, tier, includeBranding }) {
     ? `<tr><td colspan="${columnCount}" style="${cellResetStyle()}padding-bottom:10px;"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">Premium split layout</span></td></tr>`
     : "";
 
-  if (sanitized.layout === "mobile-compact") {
+  if (isMobileCompact) {
+    const mobileContactRows = buildMobileCompactRows(sanitized);
+    const mobileSocialRows = buildMobileCompactSocialRows(sanitized);
     return `
 <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}width:100%;max-width:340px;font-family:Arial,Helvetica,sans-serif;color:#111827;">
   <tbody>
   <tr>
-    <td align="left" valign="top" style="${cellResetStyle()}padding:0;">
+    <td align="center" valign="top" style="${cellResetStyle()}padding:0;">
       <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}width:100%;">
         <tbody>
         <tr>
-          <td align="left" style="${cellResetStyle()}padding:0 0 12px 0;">
+          <td align="center" style="${cellResetStyle()}padding:0 0 12px 0;">
             ${logoMarkup}
           </td>
         </tr>
-        ${photoMarkup ? `<tr><td align="left" style="${cellResetStyle()}padding:0 0 10px 0;">${photoMarkup}</td></tr>` : ""}
+        ${photoMarkup ? `<tr><td align="center" style="${cellResetStyle()}padding:0 0 10px 0;">${photoMarkup}</td></tr>` : ""}
         <tr>
-          <td style="${cellResetStyle()}font-size:20px;line-height:25px;font-weight:700;color:#111827;padding:0 0 4px 0;">
+          <td align="center" style="${cellResetStyle()}font-size:19px;line-height:24px;font-weight:700;color:#111827;padding:0 0 4px 0;">
             ${escapeHtml(sanitized.fullName)}
           </td>
         </tr>
         <tr>
-          <td style="${cellResetStyle()}font-size:13px;line-height:19px;font-weight:${meta.accentWeight};color:${brandColor};padding:0 0 8px 0;">
+          <td align="center" style="${cellResetStyle()}font-size:12px;line-height:18px;font-weight:${meta.accentWeight};color:${brandColor};padding:0 0 10px 0;">
             ${escapeHtml(buildTitleLine(sanitized))}
           </td>
         </tr>
-        ${contactRows}
-        ${socialRows}
+        ${mobileContactRows}
+        ${mobileSocialRows}
         <tr>
-          <td style="${cellResetStyle()}padding-top:10px;font-size:12px;line-height:18px;color:#374151;">
+          <td align="center" style="${cellResetStyle()}padding-top:12px;font-size:12px;line-height:18px;color:#374151;">
             <a href="${ensureProtocol(sanitized.website)}" style="color:${brandColor};text-decoration:none;font-weight:600;">${escapeHtml(sanitized.ctaText || meta.label)}</a>
           </td>
         </tr>
         <tr>
-          <td style="${cellResetStyle()}padding-top:8px;font-size:11px;line-height:16px;color:#6b7280;">
+          <td align="center" style="${cellResetStyle()}padding-top:8px;font-size:10px;line-height:15px;color:#6b7280;">
             ${escapeHtml(sanitized.disclaimer)}
           </td>
         </tr>
@@ -289,11 +293,53 @@ function buildSocialRows(draft) {
   return buildRow("Social", links.join(' <span style="color:#9ca3af;">|</span> '));
 }
 
+function buildMobileCompactRows(draft) {
+  const rows = [];
+  if (draft.phone) {
+    rows.push(buildMobileCompactRow(`<a href="tel:${sanitizePhoneHref(draft.phone)}" style="${linkStyle(draft.brandColor)}font-weight:600;">${escapeHtml(draft.phone)}</a>`));
+  }
+  if (draft.email) {
+    rows.push(buildMobileCompactRow(`<a href="mailto:${escapeAttribute(draft.email)}" style="${linkStyle(draft.brandColor)}">${escapeHtml(draft.email)}</a>`));
+  }
+  if (draft.website) {
+    rows.push(buildMobileCompactRow(`<a href="${ensureProtocol(draft.website)}" style="${linkStyle(draft.brandColor)}">${escapeHtml(stripProtocol(draft.website))}</a>`));
+  }
+  if (draft.location) {
+    rows.push(buildMobileCompactRow(escapeHtml(draft.location), "#4b5563"));
+  }
+  return rows.join("");
+}
+
+function buildMobileCompactSocialRows(draft) {
+  const links = [
+    ["LinkedIn", draft.linkedinUrl],
+    ["Facebook", draft.facebookUrl],
+    ["Instagram", draft.instagramUrl]
+  ]
+    .filter(([, url]) => url)
+    .map(([label, url]) => `<a href="${ensureProtocol(url)}" style="${linkStyle(draft.brandColor)}">${escapeHtml(label)}</a>`);
+
+  if (!links.length) {
+    return "";
+  }
+
+  return buildMobileCompactRow(links.join(' <span style="color:#9ca3af;">|</span> '));
+}
+
 function buildRow(label, value) {
   return `
     <tr>
       <td style="${cellResetStyle()}padding-top:4px;font-size:12px;line-height:18px;color:#4b5563;">
         <span style="display:inline-block;min-width:62px;font-weight:700;color:#111827;">${label}:</span> ${value}
+      </td>
+    </tr>`;
+}
+
+function buildMobileCompactRow(value, color = "#4b5563") {
+  return `
+    <tr>
+      <td align="center" style="${cellResetStyle()}padding-top:6px;font-size:12px;line-height:18px;color:${color};">
+        ${value}
       </td>
     </tr>`;
 }

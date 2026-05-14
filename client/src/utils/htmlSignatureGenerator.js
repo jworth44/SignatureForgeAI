@@ -509,26 +509,19 @@ function renderBannerLayout(data, options = {}) {
     url: resolveCtaHref(sanitized)
   });
   const bannerPadding = variantConfig.dense ? "10px 14px" : "12px 16px";
-  const constrainedBannerLogoMarkup = bannerLogoMarkup
-    ? bannerLogoMarkup.replace(
-        /style="([^"]*)"/,
-        'style="$1max-height:36px;max-width:100px;height:auto;display:block;"'
-      )
-    : "";
-
   return `
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}width:100%;max-width:620px;font-family:Arial,Helvetica,sans-serif;color:#111827;">
   <tbody>
     <tr>
-      <td style="${cellResetStyle()}background-color:${brandColor};padding:0;height:48px;vertical-align:middle;">
+      <td style="${cellResetStyle()}background-color:${brandColor};padding:0;height:52px;vertical-align:middle;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}width:100%;background-color:${brandColor};">
           <tbody>
-            <tr>
-              <td valign="middle" style="${cellResetStyle()}padding:0 12px;height:48px;vertical-align:middle;">
+            <tr style="height:52px;">
+              <td valign="middle" style="${cellResetStyle()}padding:0 14px;vertical-align:middle;background-color:${brandColor};">
                 <div style="font-size:16px;line-height:1.2;font-weight:700;color:#ffffff;">${escapeHtml(sanitized.fullName)}</div>
                 ${titleLine ? `<div style="padding-top:4px;font-size:12px;line-height:1.4;font-weight:400;color:#ffffff;${multilineTextStyle()}">${escapeHtml(titleLine)}</div>` : ""}
               </td>
-              ${constrainedBannerLogoMarkup ? `<td width="110" align="right" valign="middle" style="${cellResetStyle()}width:110px;padding:0 8px;height:48px;vertical-align:middle;">${constrainedBannerLogoMarkup}</td>` : ""}
+              ${bannerLogoMarkup ? `<td width="110" align="right" valign="middle" style="${cellResetStyle()}width:110px;padding:6px 10px;vertical-align:middle;background-color:${brandColor};">${bannerLogoMarkup}</td>` : ""}
             </tr>
           </tbody>
         </table>
@@ -1156,14 +1149,14 @@ function buildImageMarkup({ source, alt, size, brandColor, type, fit = "contain"
 function buildBannerLogoMarkup({ source, alt, brandColor }) {
   const maxHeight = 40;
   if (source) {
-    return `<img src="${source}" alt="${escapeAttribute(alt)}" style="display:block;max-height:${maxHeight}px;width:auto;border:0;border:none;outline:none;box-shadow:none;text-decoration:none;vertical-align:middle;background:#ffffff;" />`;
+    return `<img src="${source}" alt="${escapeAttribute(alt)}" style="max-height:36px;max-width:100px;height:auto;width:auto;display:block;vertical-align:middle;border:0;border:none;outline:none;box-shadow:none;text-decoration:none;" />`;
   }
 
   return `
 <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}">
   <tbody>
     <tr>
-      <td align="center" valign="middle" width="${maxHeight}" height="${maxHeight}" style="${cellResetStyle()}width:${maxHeight}px;height:${maxHeight}px;background:#ffffff;border-radius:10px;color:${brandColor};font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;vertical-align:middle;">
+      <td align="center" valign="middle" width="${maxHeight}" height="${maxHeight}" style="${cellResetStyle()}width:${maxHeight}px;height:${maxHeight}px;color:${brandColor};font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;vertical-align:middle;">
         ${escapeHtml(initialsFromAlt(alt))}
       </td>
     </tr>

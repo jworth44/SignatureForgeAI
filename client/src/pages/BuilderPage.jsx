@@ -87,6 +87,22 @@ const TEMPLATE_OPTIONS = [
   { value: "signature-card", label: "Signature Card", description: "Card-style presentation with contained profile framing.", pro: true }
 ];
 
+const TEMPLATE_DEFAULT_COLORS = {
+  "professional-classic": "#2563EB",
+  "executive-corporate": "#1E293B",
+  "minimal-clean": "#374151",
+  "premium-consultant": "#4F46E5",
+  "contractor-bold": "#EA580C",
+  "real-estate": "#059669",
+  "legal-finance": "#1E3A5F",
+  "health-medical": "#0D9488",
+  "creative-designer": "#7C3AED",
+  "tech-saas": "#0F172A",
+  "mobile-compact": "#2563EB",
+  "signature-card": "#6366F1",
+  "corporate-card": "#334155"
+};
+
 const DETAILS_FIELDS = [
   ["fullName", "Full name", true],
   ["jobTitle", "Job title", true],
@@ -373,13 +389,17 @@ export default function BuilderPage() {
   }
 
   function handleLayoutChange(value) {
-    setDraft((current) => ({
-      ...current,
-      layout: value,
-      templateVariant: current.layout === value ? current.templateVariant : 1,
-      layoutManuallySelected: true,
-      layoutAutoSelected: false
-    }));
+    setDraft((current) => {
+      const nextBrandColor = resolveTemplateSelectionColor(current, value);
+      return {
+        ...current,
+        brandColor: nextBrandColor,
+        layout: value,
+        templateVariant: current.layout === value ? current.templateVariant : 1,
+        layoutManuallySelected: true,
+        layoutAutoSelected: false
+      };
+    });
   }
 
   function handleRegenerateTemplate() {
@@ -796,10 +816,7 @@ export default function BuilderPage() {
             />
           </div>
 
-          <p className="generator-quality-tip">
-            <span aria-hidden="true">\uD83D\uDCA1</span> Tip: Upload your logo as a PNG with a transparent background for best
-            results across all templates.
-          </p>
+          <p className="generator-quality-tip">Tip: Upload your logo as a PNG with a transparent background for best results across all templates.</p>
         </section>
 
         <section className="generator-card">
@@ -1527,18 +1544,18 @@ function UploadAssetCard({ description, disabled = false, inputId, label, onFile
 function buildTemplatePreviewDraft(template, draft) {
   const fallback = getDefaultDraft();
   const previewBase = {
-    "professional-classic": { brandColor: "#2663ff", logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
-    "executive-corporate": { brandColor: "#163a8a", logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
-    "minimal-clean": { brandColor: "#64748b", logoSize: "small", showDivider: false, includeBranding: false, logoShape: "circle", templateVariant: 1 },
-    "premium-consultant": { brandColor: "#6d4aff", logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
-    "contractor-bold": { brandColor: "#d97706", logoSize: "large", showDivider: false, includeBranding: false, templateVariant: 1 },
-    "real-estate": { brandColor: "#0f766e", logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
-    "legal-finance": { brandColor: "#1f3b73", logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
-    "health-medical": { brandColor: "#0d9488", logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
-    "creative-designer": { brandColor: "#7c3aed", logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
-    "tech-saas": { brandColor: "#4f46e5", logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
-    "mobile-compact": { brandColor: "#0f766e", logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
-    "signature-card": { brandColor: "#8b6dff", logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 }
+    "professional-classic": { brandColor: TEMPLATE_DEFAULT_COLORS["professional-classic"], logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
+    "executive-corporate": { brandColor: TEMPLATE_DEFAULT_COLORS["executive-corporate"], logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
+    "minimal-clean": { brandColor: TEMPLATE_DEFAULT_COLORS["minimal-clean"], logoSize: "small", showDivider: false, includeBranding: false, logoShape: "circle", templateVariant: 1 },
+    "premium-consultant": { brandColor: TEMPLATE_DEFAULT_COLORS["premium-consultant"], logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
+    "contractor-bold": { brandColor: TEMPLATE_DEFAULT_COLORS["contractor-bold"], logoSize: "large", showDivider: false, includeBranding: false, templateVariant: 1 },
+    "real-estate": { brandColor: TEMPLATE_DEFAULT_COLORS["real-estate"], logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
+    "legal-finance": { brandColor: TEMPLATE_DEFAULT_COLORS["legal-finance"], logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
+    "health-medical": { brandColor: TEMPLATE_DEFAULT_COLORS["health-medical"], logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
+    "creative-designer": { brandColor: TEMPLATE_DEFAULT_COLORS["creative-designer"], logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
+    "tech-saas": { brandColor: TEMPLATE_DEFAULT_COLORS["tech-saas"], logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
+    "mobile-compact": { brandColor: TEMPLATE_DEFAULT_COLORS["mobile-compact"], logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
+    "signature-card": { brandColor: TEMPLATE_DEFAULT_COLORS["signature-card"], logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 }
   };
 
   return {
@@ -1645,6 +1662,7 @@ async function detectImageTransparency(dataUrl) {
     return false;
   }
 
+  context.clearRect(0, 0, canvas.width, canvas.height);
   context.drawImage(image, 0, 0, canvas.width, canvas.height);
   const samplePoints = buildTransparencySamplePoints(canvas.width, canvas.height);
 
@@ -1680,6 +1698,7 @@ async function rasterizeImageAsPng(dataUrl, options = {}) {
     throw new Error("canvas-unavailable");
   }
 
+  context.clearRect(0, 0, width, height);
   context.drawImage(image, 0, 0, width, height);
   return canvas.toDataURL("image/png");
 }
@@ -1709,6 +1728,31 @@ function resolveRecommendedLayout(draft, recommendedLayout) {
     return "professional-classic";
   }
   return normalized;
+}
+
+function resolveTemplateSelectionColor(current, nextLayout) {
+  const currentColor = normalizeHexColor(current.brandColor);
+  const currentLayoutDefault = normalizeHexColor(TEMPLATE_DEFAULT_COLORS[current.layout]);
+  const nextLayoutDefault = normalizeHexColor(TEMPLATE_DEFAULT_COLORS[nextLayout]) || currentColor;
+  const matchesAnyFamilyDefault = Object.values(TEMPLATE_DEFAULT_COLORS).some((color) => normalizeHexColor(color) === currentColor);
+
+  if (!currentColor) {
+    return nextLayoutDefault;
+  }
+
+  if (currentColor === currentLayoutDefault) {
+    return nextLayoutDefault;
+  }
+
+  if (matchesAnyFamilyDefault && currentColor !== nextLayoutDefault) {
+    return nextLayoutDefault;
+  }
+
+  return current.brandColor;
+}
+
+function normalizeHexColor(value) {
+  return String(value || "").trim().toUpperCase();
 }
 
 function lookupTemplateLabel(layout) {

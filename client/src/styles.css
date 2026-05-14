@@ -2726,6 +2726,7 @@ h3 {
   position: sticky;
   top: 88px;
   align-self: flex-start;
+  min-width: 340px;
   max-height: calc(100vh - 104px);
 }
 
@@ -3626,8 +3627,12 @@ h3 {
   }
 
   .generator-builder-shell-templates .generator-editor-pane {
-    flex-basis: 640px;
-    max-width: 720px;
+    flex-basis: 560px;
+    max-width: 600px;
+  }
+
+  .generator-builder-shell-templates .generator-template-grid {
+    grid-template-columns: 1fr;
   }
 
   .generator-template-preview-frame {

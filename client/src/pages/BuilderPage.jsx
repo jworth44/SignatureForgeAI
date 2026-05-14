@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import AiSuggestionPanel from "../components/AiSuggestionPanel";
 import SignaturePreview from "../components/SignaturePreview";
@@ -155,6 +156,31 @@ const INDUSTRY_OPTIONS = [
 
 const GOAL_OPTIONS = ["Book calls", "Get quotes", "Show credibility", "Drive website visits"];
 const TONE_OPTIONS = ["Professional", "Friendly", "Premium", "Contractor", "Minimal"];
+const LOGO_FORMAT_MESSAGES = {
+  gif: {
+    tone: "warning",
+    text: "\u26A0 GIF format detected — limited color support. PNG is recommended for best quality."
+  },
+  jpeg: {
+    tone: "warning",
+    text:
+      "\u26A0 JPEG format detected — JPEGs don't support transparency. Your logo may show a white box on dark or colored template backgrounds. Re-saving as PNG is recommended."
+  },
+  png: {
+    tone: "success",
+    text: "\u2713 PNG format — transparency supported"
+  },
+  webp: {
+    tone: "success",
+    text: "\u2713 WebP format — transparency supported"
+  }
+};
+const LOGO_PANEL_DEFAULT = {
+  fileType: "",
+  formatStatus: null,
+  transparencyStatus: null,
+  toolStatus: null
+};
 const CTA_DESTINATION_OPTIONS = [
   { value: "none", label: "None", pro: false },
   { value: "custom", label: "Custom URL", pro: false },
@@ -178,6 +204,7 @@ export default function BuilderPage() {
   const [moreExportOptionsOpen, setMoreExportOptionsOpen] = useState(false);
   const [previewDevice, setPreviewDevice] = useState("desktop");
   const [previewZoom, setPreviewZoom] = useState("100");
+  const [logoPanelState, setLogoPanelState] = useState(LOGO_PANEL_DEFAULT);
   const [smartSetup, setSmartSetup] = useState({
     industry: "General Professional",
     goal: "Show credibility",
@@ -388,14 +415,103 @@ export default function BuilderPage() {
   async function readFileAsDataUrl(targetField, file) {
     if (!file) {
       setDraft((current) => ({ ...current, [targetField]: "" }));
+      if (targetField === "logoDataUrl") {
+        setLogoPanelState(LOGO_PANEL_DEFAULT);
+      }
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      setDraft((current) => ({ ...current, [targetField]: String(reader.result || "") }));
-    };
-    reader.readAsDataURL(file);
+    try {
+      const dataUrl = await convertFileToDataUrl(file);
+      setDraft((current) => ({ ...current, [targetField]: dataUrl }));
+
+      if (targetField === "logoDataUrl") {
+        const analysis = await analyzeLogoFile(file, dataUrl);
+        setLogoPanelState(analysis);
+      }
+    } catch {
+      if (targetField === "logoDataUrl") {
+        setLogoPanelState({
+          ...LOGO_PANEL_DEFAULT,
+          toolStatus: {
+            tone: "warning",
+            text: "Logo analysis failed. Try uploading the file again."
+          }
+        });
+      }
+    }
+  }
+
+  async function handleConvertLogoToPng() {
+    if (!draft.logoDataUrl) {
+      return;
+    }
+
+    try {
+      const pngDataUrl = await rasterizeImageAsPng(draft.logoDataUrl);
+      setDraft((current) => ({ ...current, logoDataUrl: pngDataUrl }));
+      const analysis = await analyzeImageDataUrl("image/png", pngDataUrl);
+      setLogoPanelState({
+        ...analysis,
+        toolStatus: {
+          tone: "success",
+          text:
+            "Converted to PNG — note: existing white background was not removed. Use Remove Background (Pro) to strip it."
+        }
+      });
+    } catch {
+      setLogoPanelState((current) => ({
+        ...current,
+        toolStatus: {
+          tone: "warning",
+          text: "PNG conversion failed. Try uploading the logo again."
+        }
+      }));
+    }
+  }
+
+  async function handleOptimizeLogoForEmail() {
+    if (!draft.logoDataUrl || isFree) {
+      return;
+    }
+
+    try {
+      const optimizedDataUrl = await rasterizeImageAsPng(draft.logoDataUrl, {
+        maxWidth: 320,
+        maxHeight: 120
+      });
+      setDraft((current) => ({ ...current, logoDataUrl: optimizedDataUrl }));
+      const analysis = await analyzeImageDataUrl("image/png", optimizedDataUrl);
+      setLogoPanelState({
+        ...analysis,
+        toolStatus: {
+          tone: "success",
+          text: "Optimized for email — your logo was converted to a lightweight PNG for cleaner signature rendering."
+        }
+      });
+    } catch {
+      setLogoPanelState((current) => ({
+        ...current,
+        toolStatus: {
+          tone: "warning",
+          text: "Logo optimization failed. Try again with a different file."
+        }
+      }));
+    }
+  }
+
+  function handleBackgroundRemovalClick() {
+    if (isFree) {
+      return;
+    }
+
+    setLogoPanelState((current) => ({
+      ...current,
+      toolStatus: {
+        tone: "success",
+        text: "Background removal coming soon — you'll be notified when this feature launches."
+      }
+    }));
   }
 
   async function handleCopy(text, label, successTarget = "") {
@@ -631,6 +747,14 @@ export default function BuilderPage() {
   }
 
   function renderImagesStep() {
+    const showFormatBanner = Boolean(logoPanelState.formatStatus);
+    const showTransparencyBanner = Boolean(logoPanelState.transparencyStatus);
+    const showToolBanner = Boolean(logoPanelState.toolStatus);
+    const canConvertToPng = logoPanelState.fileType === "image/jpeg";
+    const freeToolTitle = "Pro feature — upgrade to remove logo backgrounds automatically";
+    const freeOptimizeTitle = "Pro feature — upgrade to optimize your logo for email";
+    const noLogoTitle = "Upload a logo first";
+
     return (
       <div className="generator-step-stack">
         <section className="generator-card">
@@ -654,7 +778,10 @@ export default function BuilderPage() {
               disabled={false}
               inputId="logo-upload"
               label="Company Logo"
-              onFileRemove={() => updateField("logoDataUrl", "")}
+              onFileRemove={() => {
+                updateField("logoDataUrl", "");
+                setLogoPanelState(LOGO_PANEL_DEFAULT);
+              }}
               onFileSelect={(file) => readFileAsDataUrl("logoDataUrl", file)}
               value={draft.logoDataUrl}
             />
@@ -668,18 +795,82 @@ export default function BuilderPage() {
               value={draft.photoDataUrl}
             />
           </div>
+
+          <p className="generator-quality-tip">
+            <span aria-hidden="true">\uD83D\uDCA1</span> Tip: Upload your logo as a PNG with a transparent background for best
+            results across all templates.
+          </p>
         </section>
 
         <section className="generator-card">
           <div className="generator-card-header">
             <div>
+              <h3>Logo quality check</h3>
+              <p className="support-copy">Review file format, transparency, and quick cleanup options before using the logo in your signature.</p>
+            </div>
+          </div>
+
+          {!draft.logoDataUrl ? <p className="support-copy">Upload a logo above to run format and transparency checks.</p> : null}
+
+          {showFormatBanner ? (
+            <div className={`generator-quality-banner generator-quality-banner-${logoPanelState.formatStatus.tone}`}>
+              {logoPanelState.formatStatus.text}
+            </div>
+          ) : null}
+
+          {showTransparencyBanner ? (
+            <div className={`generator-quality-banner generator-quality-banner-${logoPanelState.transparencyStatus.tone}`}>
+              {logoPanelState.transparencyStatus.text}
+            </div>
+          ) : null}
+
+          {showToolBanner ? (
+            <div className={`generator-quality-banner generator-quality-banner-${logoPanelState.toolStatus.tone}`}>
+              {logoPanelState.toolStatus.text}
+            </div>
+          ) : null}
+
+          <div className="generator-quality-actions">
+            {canConvertToPng ? (
+              <button className="button button-secondary" type="button" onClick={handleConvertLogoToPng}>
+                Convert to PNG
+              </button>
+            ) : null}
+
+            <span className="generator-quality-action-wrap" title={isFree ? freeToolTitle : !draft.logoDataUrl ? noLogoTitle : ""}>
+              <button
+                className={`button button-secondary ${isFree ? "button-locked" : ""}`}
+                disabled={isFree || !draft.logoDataUrl}
+                type="button"
+                onClick={handleBackgroundRemovalClick}
+              >
+                {isFree ? <Lock aria-hidden="true" size={14} strokeWidth={2.2} /> : null}
+                <span>Remove background (Pro)</span>
+              </button>
+            </span>
+
+            <span className="generator-quality-action-wrap" title={isFree ? freeOptimizeTitle : !draft.logoDataUrl ? noLogoTitle : ""}>
+              <button
+                className={`button button-secondary ${isFree ? "button-locked" : ""}`}
+                disabled={isFree || !draft.logoDataUrl}
+                type="button"
+                onClick={handleOptimizeLogoForEmail}
+              >
+                {isFree ? <Lock aria-hidden="true" size={14} strokeWidth={2.2} /> : null}
+                <span>Optimize for email</span>
+              </button>
+            </span>
+          </div>
+
+          <div className="generator-quality-footer">
+            <div>
               <h3>Need a logo?</h3>
               <p className="support-copy">Logo Pilot AI is our separate logo app for concept creation and refinement.</p>
             </div>
+            <a className="button button-secondary" href="#">
+              Explore Logo Pilot AI
+            </a>
           </div>
-          <a className="button button-secondary" href="#">
-            Explore Logo Pilot AI
-          </a>
         </section>
       </div>
     );
@@ -1358,6 +1549,156 @@ function buildTemplatePreviewDraft(template, draft) {
     layout: template.value,
     templateVariant: 1,
     renderMode: "desktop"
+  };
+}
+
+function convertFileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("file-read-failed"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageElement(source) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("image-load-failed"));
+    image.src = source;
+  });
+}
+
+function normalizeImageMimeType(fileType) {
+  const normalized = String(fileType || "").toLowerCase();
+  return normalized === "image/jpg" ? "image/jpeg" : normalized;
+}
+
+async function analyzeLogoFile(file, dataUrl) {
+  const normalizedType = normalizeImageMimeType(file?.type);
+  return analyzeImageDataUrl(normalizedType, dataUrl);
+}
+
+async function analyzeImageDataUrl(fileType, dataUrl) {
+  const normalizedType = normalizeImageMimeType(fileType);
+  const formatStatus = resolveFormatStatus(normalizedType);
+  let transparencyStatus = null;
+
+  if (normalizedType === "image/png" || normalizedType === "image/webp") {
+    const hasTransparency = await detectImageTransparency(dataUrl);
+    transparencyStatus = hasTransparency
+      ? {
+          tone: "success",
+          text: "\u2713 Transparent background detected"
+        }
+      : {
+          tone: "warning",
+          text:
+            "\u26A0 No transparent background detected — your logo may show a white box on colored templates. Use the Remove Background tool (Pro) to fix this."
+        };
+  }
+
+  return {
+    fileType: normalizedType,
+    formatStatus,
+    transparencyStatus,
+    toolStatus: null
+  };
+}
+
+function resolveFormatStatus(fileType) {
+  if (fileType === "image/jpeg") {
+    return LOGO_FORMAT_MESSAGES.jpeg;
+  }
+
+  if (fileType === "image/png") {
+    return LOGO_FORMAT_MESSAGES.png;
+  }
+
+  if (fileType === "image/webp") {
+    return LOGO_FORMAT_MESSAGES.webp;
+  }
+
+  if (fileType === "image/gif") {
+    return LOGO_FORMAT_MESSAGES.gif;
+  }
+
+  if (!fileType) {
+    return null;
+  }
+
+  return {
+    tone: "success",
+    text: `\u2713 ${fileType.replace("image/", "").toUpperCase()} format detected`
+  };
+}
+
+async function detectImageTransparency(dataUrl) {
+  const image = await loadImageElement(dataUrl);
+  const canvas = document.createElement("canvas");
+  canvas.width = image.naturalWidth || image.width;
+  canvas.height = image.naturalHeight || image.height;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+
+  if (!context) {
+    return false;
+  }
+
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  const samplePoints = buildTransparencySamplePoints(canvas.width, canvas.height);
+
+  return samplePoints.some(([x, y]) => context.getImageData(x, y, 1, 1).data[3] < 255);
+}
+
+function buildTransparencySamplePoints(width, height) {
+  const maxX = Math.max(width - 1, 0);
+  const maxY = Math.max(height - 1, 0);
+  const ratios = [0, 0.25, 0.5, 0.75, 1];
+  const points = [];
+
+  ratios.forEach((ratio) => {
+    points.push([Math.round(maxX * ratio), 0]);
+    points.push([Math.round(maxX * ratio), maxY]);
+    points.push([0, Math.round(maxY * ratio)]);
+    points.push([maxX, Math.round(maxY * ratio)]);
+  });
+
+  return Array.from(new Map(points.map(([x, y]) => [`${x}:${y}`, [x, y]])).values()).slice(0, 20);
+}
+
+async function rasterizeImageAsPng(dataUrl, options = {}) {
+  const image = await loadImageElement(dataUrl);
+  const canvas = document.createElement("canvas");
+  const { width, height } = getConstrainedImageSize(image, options.maxWidth, options.maxHeight);
+
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("canvas-unavailable");
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+  return canvas.toDataURL("image/png");
+}
+
+function getConstrainedImageSize(image, maxWidth, maxHeight) {
+  const originalWidth = image.naturalWidth || image.width || maxWidth || 1;
+  const originalHeight = image.naturalHeight || image.height || maxHeight || 1;
+
+  if (!maxWidth && !maxHeight) {
+    return { width: originalWidth, height: originalHeight };
+  }
+
+  const widthRatio = maxWidth ? maxWidth / originalWidth : Infinity;
+  const heightRatio = maxHeight ? maxHeight / originalHeight : Infinity;
+  const scale = Math.min(widthRatio, heightRatio, 1);
+
+  return {
+    width: Math.max(1, Math.round(originalWidth * scale)),
+    height: Math.max(1, Math.round(originalHeight * scale))
   };
 }
 

@@ -11,7 +11,7 @@ const NAV_ITEMS = [
 
 export default function AppShell({ children }) {
   return (
-    <div className="site-shell">
+    <div className="site-shell" style={{ width: "100%", minHeight: "100vh" }}>
       <header className="topbar">
         <NavLink className="brand-lockup" to="/">
           <img className="brand-logo" src="/brand/signature-pilot-ai-header-logo.png" alt="Signature Pilot AI" />
@@ -40,7 +40,9 @@ export default function AppShell({ children }) {
         </div>
       </header>
 
-      <main className="site-main">{children}</main>
+      <main className="site-main" style={{ width: "100%", maxWidth: "100%", boxSizing: "border-box" }}>
+        {children}
+      </main>
     </div>
   );
 }

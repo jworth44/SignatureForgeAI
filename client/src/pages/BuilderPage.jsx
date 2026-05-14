@@ -795,6 +795,34 @@ export default function BuilderPage() {
               ) : null}
             </label>
 
+            <label className="field">
+              <span>Logo size</span>
+              <select value={artifacts.effectiveDraft.logoSize} onChange={(event) => updateField("logoSize", event.target.value)}>
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+                <option disabled={isFree} value="extra-large">
+                  Extra Large
+                </option>
+                <option disabled={isFree} value="custom">
+                  Custom
+                </option>
+              </select>
+            </label>
+
+            {artifacts.effectiveDraft.logoSize === "custom" ? (
+              <label className="field">
+                <span>Custom logo width</span>
+                <input
+                  max="180"
+                  min="40"
+                  type="number"
+                  value={artifacts.effectiveDraft.customLogoWidth}
+                  onChange={(event) => updateField("customLogoWidth", event.target.value)}
+                />
+              </label>
+            ) : null}
+
             <label className="field field-full">
               <span>CTA text</span>
               <input value={draft.ctaText} onChange={(event) => updateField("ctaText", event.target.value)} />
@@ -846,34 +874,6 @@ export default function BuilderPage() {
 
             {advancedOptionsOpen ? (
               <div className="generator-form-grid generator-form-grid-advanced">
-                <label className="field">
-                  <span>Logo size</span>
-                  <select value={artifacts.effectiveDraft.logoSize} onChange={(event) => updateField("logoSize", event.target.value)}>
-                    <option value="small">Small</option>
-                    <option value="medium">Medium</option>
-                    <option value="large">Large</option>
-                    <option disabled={isFree} value="extra-large">
-                      Extra Large
-                    </option>
-                    <option disabled={isFree} value="custom">
-                      Custom
-                    </option>
-                  </select>
-                </label>
-
-                {artifacts.effectiveDraft.logoSize === "custom" ? (
-                  <label className="field">
-                    <span>Custom logo width</span>
-                    <input
-                      max="180"
-                      min="40"
-                      type="number"
-                      value={artifacts.effectiveDraft.customLogoWidth}
-                      onChange={(event) => updateField("customLogoWidth", event.target.value)}
-                    />
-                  </label>
-                ) : null}
-
                 <label className="field">
                   <span>Divider</span>
                   <select

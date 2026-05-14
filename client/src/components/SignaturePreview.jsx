@@ -95,7 +95,7 @@ export default function SignaturePreview({
           <div className="workspace-email-header">
             <div className="workspace-email-row">
               <strong>From</strong>
-              <span>{effectiveDraft.fullName || "James Worthing"} &lt;{effectiveDraft.email || "hello@signatureforge.ai"}&gt;</span>
+              <span>{effectiveDraft.fullName || "James Worthing"} &lt;{effectiveDraft.email || "James@signaturepilotai.com"}&gt;</span>
             </div>
             <div className="workspace-email-row">
               <strong>To</strong>

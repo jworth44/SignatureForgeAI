@@ -46,8 +46,8 @@ const TEMPLATE_SHOWCASE = [
 
 const TEMPLATE_SHOWCASE_SAMPLE = {
   fullName: "James Worthing",
-  jobTitle: "HSE Advisor",
-  companyName: "James Worthing Safety Consulting Services",
+  jobTitle: "Founder",
+  companyName: "Signature Pilot AI",
   phone: "204-555-5555",
   email: "James@email.com",
   location: "Winnipeg, MB",
@@ -153,13 +153,13 @@ export default function LandingPage() {
               <span className="preview-avatar">SP</span>
               <div>
                 <strong>James Worthing</strong>
-                <p>HSE Advisor | James Worthing Safety Consulting</p>
+                <p>Founder | Signature Pilot AI</p>
                 <small>Book a strategy call</small>
               </div>
             </div>
             <div className="after-card-contact">
-              <p>204-791-7999</p>
-              <p>j_worthing@hotmail.com</p>
+              <p>1-800-555-5555</p>
+              <p>James@signaturepilotai.com</p>
             </div>
             <div className="after-card-meta">
               <span>Clickable links</span>

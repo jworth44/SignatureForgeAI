@@ -38,6 +38,69 @@ const LOGO_SIZES = {
   "extra-large": 128
 };
 
+const TEMPLATE_FONT_STACKS = {
+  "professional-classic": {
+    identity: "Arial, Helvetica, sans-serif",
+    label: "Arial, Helvetica, sans-serif"
+  },
+  "executive-corporate": {
+    identity: "'Trebuchet MS', Arial, sans-serif",
+    label: "'Trebuchet MS', Arial, sans-serif"
+  },
+  "minimal-clean": {
+    identity: "Georgia, 'Times New Roman', serif",
+    label: "Georgia, 'Times New Roman', serif"
+  },
+  "premium-consultant": {
+    identity: "'Palatino Linotype', Palatino, Georgia, serif",
+    label: "'Palatino Linotype', Palatino, Georgia, serif"
+  },
+  "contractor-bold": {
+    identity: "'Trebuchet MS', Verdana, sans-serif",
+    label: "'Trebuchet MS', Verdana, sans-serif"
+  },
+  "real-estate": {
+    identity: "Verdana, Geneva, sans-serif",
+    label: "Verdana, Geneva, sans-serif"
+  },
+  "legal-finance": {
+    identity: "Georgia, 'Times New Roman', serif",
+    label: "Georgia, 'Times New Roman', serif"
+  },
+  "health-medical": {
+    identity: "'Lucida Sans', 'Lucida Grande', sans-serif",
+    label: "'Lucida Sans', 'Lucida Grande', sans-serif"
+  },
+  "creative-designer": {
+    identity: "'Trebuchet MS', Arial, sans-serif",
+    label: "'Trebuchet MS', Arial, sans-serif"
+  },
+  "tech-saas": {
+    identity: "Arial, Helvetica, sans-serif",
+    label: "'Courier New', Courier, monospace"
+  },
+  "mobile-compact": {
+    identity: "Arial, Helvetica, sans-serif",
+    label: "Arial, Helvetica, sans-serif"
+  },
+  "signature-card": {
+    identity: "'Palatino Linotype', Palatino, Georgia, serif",
+    label: "'Palatino Linotype', Palatino, Georgia, serif"
+  },
+  "corporate-card": {
+    identity: "'Trebuchet MS', Arial, sans-serif",
+    label: "'Trebuchet MS', Arial, sans-serif"
+  }
+};
+
+const SOCIAL_ICON_URLS = {
+  linkedinUrl: "https://cdn-icons-png.flaticon.com/16/174/174857.png",
+  facebookUrl: "https://cdn-icons-png.flaticon.com/16/174/174848.png",
+  instagramUrl: "https://cdn-icons-png.flaticon.com/16/174/174855.png",
+  twitterUrl: "https://cdn-icons-png.flaticon.com/16/5968/5968958.png",
+  youtubeUrl: "https://cdn-icons-png.flaticon.com/16/1384/1384060.png"
+};
+
 export function getDefaultDraft() {
   return {
     fullName: "James Worthing",
@@ -50,6 +113,8 @@ export function getDefaultDraft() {
     linkedinUrl: "https://linkedin.com",
     facebookUrl: "",
     instagramUrl: "",
+    twitterUrl: "",
+    youtubeUrl: "",
     brandColor: "#2663ff",
     layout: "professional-classic",
     templateVariant: 1,
@@ -133,7 +198,7 @@ export function generateSignatureHtml({ draft, tier, includeBranding }) {
   const variantConfig = resolveVariantConfig(sanitized);
   const brandColor = normalizedColor(sanitized.brandColor);
   const logoMarkup = buildImageMarkup({
-    source: sanitized.logoDataUrl || sanitized.photoDataUrl,
+    source: sanitized.logoDataUrl,
     alt: sanitized.companyName || sanitized.fullName,
     size: variantConfig.logoSizeOverride || getLogoWidth(sanitized),
     brandColor,
@@ -141,11 +206,11 @@ export function generateSignatureHtml({ draft, tier, includeBranding }) {
     fit: sanitized.logoFit,
     shape: sanitized.logoShape
   });
-  const photoMarkup = sanitized.photoDataUrl && sanitized.logoDataUrl
+  const photoMarkup = sanitized.photoDataUrl
     ? buildImageMarkup({
         source: sanitized.photoDataUrl,
         alt: sanitized.fullName,
-        size: 52,
+        size: 48,
         brandColor,
         type: "photo",
         fit: "cover",
@@ -205,6 +270,8 @@ function applyTierRules(draft) {
     linkedinUrl: tier === "free" ? "" : draft.linkedinUrl,
     facebookUrl: tier === "free" ? "" : draft.facebookUrl,
     instagramUrl: tier === "free" ? "" : draft.instagramUrl,
+    twitterUrl: tier === "free" ? "" : draft.twitterUrl,
+    youtubeUrl: tier === "free" ? "" : draft.youtubeUrl,
     variantLabel: `${getLayoutMeta(resolvedBaseLayout).name} - Variant ${variant} of 12`
   };
 }
@@ -280,17 +347,26 @@ function buildTitleLine(draft) {
   return [draft.jobTitle, draft.companyName].filter(Boolean).join(" | ");
 }
 
-function buildThemedTitleLineMarkup(draft, brandColor) {
+function buildThemedTitleLineMarkup(draft, brandColor, fontConfig, options = {}) {
+  const {
+    companyColor = brandColor,
+    separatorColor = "#9ca3af",
+    titleColor = "#666666"
+  } = options;
   const parts = [];
 
   if (draft.jobTitle) {
-    parts.push(`<span style="color:#666666;font-size:12px;font-weight:400;line-height:1.4;">${escapeHtml(draft.jobTitle)}</span>`);
+    parts.push(
+      `<span style="color:${titleColor};font-family:${fontConfig.identity};font-size:12px;font-weight:400;line-height:1.4;">${escapeHtml(draft.jobTitle)}</span>`
+    );
   }
   if (draft.companyName) {
-    parts.push(`<span style="color:${brandColor};font-size:11px;font-weight:600;line-height:1.4;">${escapeHtml(draft.companyName)}</span>`);
+    parts.push(
+      `<span style="color:${companyColor};font-family:${fontConfig.identity};font-size:11px;font-weight:600;line-height:1.4;">${escapeHtml(draft.companyName)}</span>`
+    );
   }
 
-  return parts.join(` <span style="color:#9ca3af;">|</span> `);
+  return parts.join(` <span style="color:${separatorColor};font-family:${fontConfig.identity};">|</span> `);
 }
 
 function resolveVariantConfig(draft) {
@@ -404,6 +480,7 @@ function renderVariantLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, 
     case "minimal":
       return renderMinimalLayout({
         brandColor,
+        photoMarkup,
         sanitized,
         variantConfig
       });
@@ -491,17 +568,24 @@ function renderBannerLayout(data, options = {}) {
   const {
     brandColor,
     familyMeta,
+    photoMarkup,
     sanitized,
     variantConfig
   } = data;
   const { showDivider = false } = options;
+  const fontConfig = getTemplateFontConfig(sanitized.resolvedLayout);
   const bannerLogoMarkup = buildBannerLogoMarkup({
-    source: sanitized.logoDataUrl || sanitized.photoDataUrl,
+    source: sanitized.logoDataUrl,
     alt: sanitized.companyName || sanitized.fullName,
     brandColor
   });
-  const titleLine = buildTitleLine(sanitized);
+  const titleLine = buildThemedTitleLineMarkup(sanitized, brandColor, fontConfig, {
+    titleColor: "#ffffff",
+    companyColor: "#ffffff",
+    separatorColor: fadeColor("#ffffff", 0.72)
+  });
   const contactMarkup = buildBannerContactMarkup(sanitized, variantConfig.contactMode, brandColor);
+  const socialRows = buildSocialRows(sanitized, brandColor, false);
   const ctaMarkup = buildBannerCtaMarkup({
     align: variantConfig.structure === "banner" && variantConfig.contactMode === "inline" ? "center" : "left",
     brandColor,
@@ -518,8 +602,17 @@ function renderBannerLayout(data, options = {}) {
           <tbody>
             <tr style="height:52px;">
               <td valign="middle" style="${cellResetStyle()}padding:0 14px;vertical-align:middle;background-color:${brandColor};">
-                <div style="font-size:16px;line-height:1.2;font-weight:700;color:#ffffff;">${escapeHtml(sanitized.fullName)}</div>
-                ${titleLine ? `<div style="padding-top:4px;font-size:12px;line-height:1.4;font-weight:400;color:#ffffff;${multilineTextStyle()}">${escapeHtml(titleLine)}</div>` : ""}
+                <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}width:100%;background-color:${brandColor};">
+                  <tbody>
+                    <tr>
+                      ${photoMarkup ? `<td valign="middle" style="${cellResetStyle()}padding:0 10px 0 0;vertical-align:middle;background-color:${brandColor};width:48px;">${photoMarkup}</td>` : ""}
+                      <td valign="middle" style="${cellResetStyle()}vertical-align:middle;background-color:${brandColor};">
+                        <div style="font-family:${fontConfig.identity};font-size:16px;line-height:1.2;font-weight:700;color:#ffffff;">${escapeHtml(sanitized.fullName)}</div>
+                        ${titleLine ? `<div style="padding-top:4px;font-size:12px;line-height:1.4;font-weight:400;color:#ffffff;${multilineTextStyle()}">${titleLine}</div>` : ""}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </td>
               ${bannerLogoMarkup ? `<td width="110" align="right" valign="middle" style="${cellResetStyle()}width:110px;padding:6px 10px;vertical-align:middle;background-color:${brandColor};">${bannerLogoMarkup}</td>` : ""}
             </tr>
@@ -532,6 +625,7 @@ function renderBannerLayout(data, options = {}) {
         ${contactMarkup}
       </td>
     </tr>
+    ${socialRows}
     ${ctaMarkup}
   </tbody>
 </table>`.trim();
@@ -541,11 +635,13 @@ function renderTwoColumnSplitLayout(data, options = {}) {
   const {
     brandColor,
     logoMarkup,
+    photoMarkup,
     sanitized
   } = data;
   const { showDivider = false } = options;
+  const fontConfig = getTemplateFontConfig(sanitized.resolvedLayout);
   const leftLogoMarkup = buildSplitColumnLogoMarkup({
-    source: sanitized.logoDataUrl || sanitized.photoDataUrl,
+    source: sanitized.logoDataUrl,
     alt: sanitized.companyName || sanitized.fullName,
     brandColor
   });
@@ -555,6 +651,7 @@ function renderTwoColumnSplitLayout(data, options = {}) {
     url: resolveCtaHref(sanitized)
   });
   const contactRows = buildSplitColumnContactRows(sanitized, brandColor);
+  const socialRows = buildSocialRows(sanitized, brandColor, false);
 
   return `
 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="${tableResetStyle()}width:100%;max-width:500px;font-family:Arial,Helvetica,sans-serif;color:#111827;">
@@ -566,18 +663,20 @@ function renderTwoColumnSplitLayout(data, options = {}) {
             <tr>
               <td align="center" valign="middle" style="${cellResetStyle()}padding:0 0 10px 0;">${leftLogoMarkup}</td>
             </tr>
+            ${photoMarkup ? `<tr><td align="center" valign="middle" style="${cellResetStyle()}padding:0 0 10px 0;">${photoMarkup}</td></tr>` : ""}
             <tr>
-              <td align="center" style="${cellResetStyle()}font-size:17px;line-height:1.2;letter-spacing:-0.3px;font-weight:700;color:#ffffff;padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
+              <td align="center" style="${cellResetStyle()}font-family:${fontConfig.identity};font-size:17px;line-height:1.2;letter-spacing:-0.3px;font-weight:700;color:#ffffff;padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
             </tr>
-            ${sanitized.jobTitle ? `<tr><td align="center" style="${cellResetStyle()}font-size:12px;line-height:1.4;font-weight:400;color:${fadeColor("#ffffff", 0.82)};padding:0;">${escapeHtml(sanitized.jobTitle)}</td></tr>` : ""}
+            ${sanitized.jobTitle ? `<tr><td align="center" style="${cellResetStyle()}font-family:${fontConfig.identity};font-size:12px;line-height:1.4;font-weight:400;color:${fadeColor("#ffffff", 0.82)};padding:0;">${escapeHtml(sanitized.jobTitle)}</td></tr>` : ""}
           </tbody>
         </table>
       </td>
       <td width="65%" valign="top" style="${cellResetStyle()}background-color:#fafafa;width:65%;padding:16px;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="${tableResetStyle()}width:100%;background-color:#fafafa;">
           <tbody>
-            ${sanitized.companyName ? `<tr><td style="${cellResetStyle()}padding:0 0 10px 0;font-size:11px;line-height:15px;font-weight:600;color:${brandColor};letter-spacing:0.08em;text-transform:uppercase;${multilineTextStyle()}">${escapeHtml(sanitized.companyName)}</td></tr>` : ""}
+            ${sanitized.companyName ? `<tr><td style="${cellResetStyle()}padding:0 0 10px 0;font-family:${fontConfig.identity};font-size:11px;line-height:15px;font-weight:600;color:${brandColor};letter-spacing:0.08em;text-transform:uppercase;${multilineTextStyle()}">${escapeHtml(sanitized.companyName)}</td></tr>` : ""}
             ${contactRows}
+            ${socialRows}
             ${ctaMarkup}
           </tbody>
         </table>
@@ -588,7 +687,7 @@ function renderTwoColumnSplitLayout(data, options = {}) {
 }
 
 function renderBorderedCardLayout(data, options = {}) {
-  const { brandColor, familyMeta, sanitized } = data;
+  const { brandColor, familyMeta, photoMarkup, sanitized } = data;
   const {
     showDivider = false,
     borderColor = "theme",
@@ -602,11 +701,13 @@ function renderBorderedCardLayout(data, options = {}) {
   const resolvedBulletColor = bulletColor === "theme" ? brandColor : bulletColor;
   const resolvedFooterColor = footerColor === "theme" ? brandColor : footerColor;
   const resolvedCompanyColor = companyColor === "theme" ? brandColor : companyColor;
+  const fontConfig = getTemplateFontConfig(sanitized.resolvedLayout);
   const borderedLogoMarkup = buildBorderedCardLogoMarkup({
-    source: sanitized.logoDataUrl || sanitized.photoDataUrl,
+    source: sanitized.logoDataUrl,
     alt: sanitized.companyName || sanitized.fullName
   });
   const contactRows = buildBorderedCardContactRows(sanitized, resolvedBulletColor);
+  const socialRows = buildSocialRows(sanitized, resolvedBulletColor, false);
   const ctaHref = resolveCtaHref(sanitized);
   const ctaText = sanitized.ctaText || familyMeta.label;
   const footerMarkup = ctaHref && ctaText
@@ -635,13 +736,14 @@ function renderBorderedCardLayout(data, options = {}) {
                     <tr>
                       <td width="45%" valign="top" style="${cellResetStyle()}width:45%;padding:0 16px 0 0;">
                         ${borderedLogoMarkup ? `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="${tableResetStyle()}width:100%;"><tbody><tr><td style="${cellResetStyle()}padding:0 0 12px 0;">${borderedLogoMarkup}</td></tr></tbody></table>` : ""}
+                        ${photoMarkup ? `<table cellpadding="0" cellspacing="0" border="0" width="100%" style="${tableResetStyle()}width:100%;"><tbody><tr><td style="${cellResetStyle()}padding:0 0 12px 0;">${photoMarkup}</td></tr></tbody></table>` : ""}
                         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="${tableResetStyle()}width:100%;">
                           <tbody>
                             <tr>
-                              <td style="${cellResetStyle()}font-size:17px;line-height:1.2;letter-spacing:-0.3px;font-weight:700;color:${brandColor};padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
+                              <td style="${cellResetStyle()}font-family:${fontConfig.identity};font-size:17px;line-height:1.2;letter-spacing:-0.3px;font-weight:700;color:${brandColor};padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
                             </tr>
-                            ${sanitized.jobTitle ? `<tr><td style="${cellResetStyle()}font-size:12px;line-height:1.4;font-weight:400;color:#666666;padding:0 0 4px 0;">${escapeHtml(sanitized.jobTitle)}</td></tr>` : ""}
-                            ${sanitized.companyName ? `<tr><td style="${cellResetStyle()}font-size:11px;line-height:1.4;color:${resolvedCompanyColor};font-weight:600;padding:0;${multilineTextStyle()}">${escapeHtml(sanitized.companyName)}</td></tr>` : ""}
+                            ${sanitized.jobTitle ? `<tr><td style="${cellResetStyle()}font-family:${fontConfig.identity};font-size:12px;line-height:1.4;font-weight:400;color:#666666;padding:0 0 4px 0;">${escapeHtml(sanitized.jobTitle)}</td></tr>` : ""}
+                            ${sanitized.companyName ? `<tr><td style="${cellResetStyle()}font-family:${fontConfig.identity};font-size:11px;line-height:1.4;color:${resolvedCompanyColor};font-weight:600;padding:0;${multilineTextStyle()}">${escapeHtml(sanitized.companyName)}</td></tr>` : ""}
                           </tbody>
                         </table>
                       </td>
@@ -649,6 +751,7 @@ function renderBorderedCardLayout(data, options = {}) {
                         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="${tableResetStyle()}width:100%;">
                           <tbody>
                             ${contactRows}
+                            ${socialRows}
                           </tbody>
                         </table>
                       </td>
@@ -666,8 +769,9 @@ function renderBorderedCardLayout(data, options = {}) {
 </table>`.trim();
 }
 
-function renderMinimalLayout({ brandColor, sanitized, variantConfig }) {
-  const titleLineMarkup = buildThemedTitleLineMarkup(sanitized, brandColor);
+function renderMinimalLayout({ brandColor, photoMarkup, sanitized, variantConfig }) {
+  const fontConfig = getTemplateFontConfig(sanitized.resolvedLayout);
+  const titleLineMarkup = buildThemedTitleLineMarkup(sanitized, brandColor, fontConfig);
   const contactRows = [
     sanitized.phone ? `<tr><td style="${cellResetStyle()}padding:0 0 4px 0;font-size:11px;line-height:1.4;font-weight:400;color:#444444;">${escapeHtml(sanitized.phone)}</td></tr>` : "",
     sanitized.email ? `<tr><td style="${cellResetStyle()}padding:0 0 4px 0;font-size:11px;line-height:1.4;font-weight:400;color:#444444;">${escapeHtml(sanitized.email)}</td></tr>` : "",
@@ -680,6 +784,7 @@ function renderMinimalLayout({ brandColor, sanitized, variantConfig }) {
   const ctaMarkup = ctaHref && sanitized.ctaText
     ? `<tr><td style="${cellResetStyle()}padding-top:10px;font-size:11px;line-height:16px;"><a href="${ctaHref}" target="_blank" rel="noopener noreferrer" title="${escapeAttribute(ctaHref)}" style="color:${brandColor};text-decoration:none;font-weight:700;">&rarr; ${escapeHtml(sanitized.ctaText)}</a></td></tr>`
     : "";
+  const socialRows = buildSocialRows(sanitized, brandColor, false);
 
   return `
 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="${tableResetStyle()}width:100%;max-width:480px;font-family:Arial,Helvetica,sans-serif;color:#111827;">
@@ -693,8 +798,9 @@ function renderMinimalLayout({ brandColor, sanitized, variantConfig }) {
               <td style="${cellResetStyle()}padding:0 0 0 12px;">
                 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="${tableResetStyle()}width:100%;">
                   <tbody>
+                    ${photoMarkup ? `<tr><td style="${cellResetStyle()}padding:0 0 10px 0;">${photoMarkup}</td></tr>` : ""}
                     <tr>
-                      <td style="${cellResetStyle()}font-size:17px;line-height:1.2;letter-spacing:-0.3px;font-weight:700;color:${brandColor};padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
+                      <td style="${cellResetStyle()}font-family:${fontConfig.identity};font-size:17px;line-height:1.2;letter-spacing:-0.3px;font-weight:700;color:${brandColor};padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
                     </tr>
                     ${titleLineMarkup ? `<tr><td style="${cellResetStyle()}font-size:12px;line-height:17px;color:#666666;padding:0 0 8px 0;${multilineTextStyle()}">${titleLineMarkup}</td></tr>` : ""}
                     <tr>
@@ -709,6 +815,7 @@ function renderMinimalLayout({ brandColor, sanitized, variantConfig }) {
                       </td>
                     </tr>
                     ${contactRows}
+                    ${socialRows}
                     ${ctaMarkup}
                   </tbody>
                 </table>
@@ -723,6 +830,7 @@ function renderMinimalLayout({ brandColor, sanitized, variantConfig }) {
 }
 
 function renderStackedLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, sanitized, variantConfig }) {
+  const fontConfig = getTemplateFontConfig(sanitized.resolvedLayout);
   const contactRows = buildContactRows(sanitized, variantConfig.contactMode, true);
   const socialRows = buildSocialRows(sanitized, brandColor, true);
   const ctaMarkup = buildCtaMarkup({
@@ -746,10 +854,10 @@ function renderStackedLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, 
     </tr>
     ${photoMarkup ? `<tr><td align="center" style="${cellResetStyle()}padding:0 0 10px 0;">${photoMarkup}</td></tr>` : ""}
     <tr>
-      <td align="center" style="${cellResetStyle()}font-size:17px;line-height:1.2;letter-spacing:-0.3px;font-weight:700;color:${brandColor};padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
+      <td align="center" style="${cellResetStyle()}font-family:${fontConfig.identity};font-size:17px;line-height:1.2;letter-spacing:-0.3px;font-weight:700;color:${brandColor};padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
     </tr>
     <tr>
-      <td align="center" style="${cellResetStyle()}font-size:12px;line-height:1.4;font-weight:400;color:#666666;padding:0 0 10px 0;${multilineTextStyle()}">${buildThemedTitleLineMarkup(sanitized, brandColor)}</td>
+      <td align="center" style="${cellResetStyle()}font-size:12px;line-height:1.4;font-weight:400;color:#666666;padding:0 0 10px 0;${multilineTextStyle()}">${buildThemedTitleLineMarkup(sanitized, brandColor, fontConfig)}</td>
     </tr>
     ${contactRows}
     ${socialRows}
@@ -762,6 +870,7 @@ function renderStackedLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, 
 }
 
 function renderCardLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, sanitized, variantConfig }) {
+  const fontConfig = getTemplateFontConfig(sanitized.resolvedLayout);
   const contactRows = buildContactRows(sanitized, variantConfig.contactMode, true);
   const socialRows = buildSocialRows(sanitized, brandColor, true);
   const ctaMarkup = buildCtaMarkup({
@@ -789,10 +898,10 @@ function renderCardLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, san
             ${photoMarkup ? `<tr><td align="center" style="${cellResetStyle()}padding:0 0 10px 0;">${photoMarkup}</td></tr>` : ""}
             ${badgeMarkup}
             <tr>
-              <td align="center" style="${cellResetStyle()}font-size:${variantConfig.nameSize}px;line-height:${variantConfig.nameSize + 5}px;font-weight:700;padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
+              <td align="center" style="${cellResetStyle()}font-family:${fontConfig.identity};font-size:17px;line-height:1.2;letter-spacing:-0.3px;font-weight:700;color:${brandColor};padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
             </tr>
             <tr>
-              <td align="center" style="${cellResetStyle()}font-size:${variantConfig.titleSize}px;line-height:${variantConfig.titleSize + 6}px;font-weight:${familyMeta.accentWeight};color:${brandColor};padding:0 0 10px 0;${multilineTextStyle()}">${escapeHtml(buildTitleLine(sanitized))}</td>
+              <td align="center" style="${cellResetStyle()}font-size:12px;line-height:1.4;font-weight:400;color:#666666;padding:0 0 10px 0;${multilineTextStyle()}">${buildThemedTitleLineMarkup(sanitized, brandColor, fontConfig)}</td>
             </tr>
             ${contactRows}
             ${socialRows}
@@ -809,6 +918,7 @@ function renderCardLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, san
 }
 
 function buildInfoBlock({ brandColor, familyMeta, logoMarkup, sanitized, variantConfig }) {
+  const fontConfig = getTemplateFontConfig(sanitized.resolvedLayout);
   const contactRows = buildContactRows(sanitized, variantConfig.contactMode, false, { ...variantConfig, unifiedHierarchy: true });
   const socialRows = buildSocialRows(sanitized, brandColor, false);
   const ctaMarkup = buildCtaMarkup({
@@ -822,27 +932,59 @@ function buildInfoBlock({ brandColor, familyMeta, logoMarkup, sanitized, variant
     ? `<tr><td style="${cellResetStyle()}padding:0 0 8px 0;"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;">${familyMeta.name}</span></td></tr>`
     : "";
   const companyMarkup = sanitized.companyName
-    ? `<tr><td style="${cellResetStyle()}font-size:11px;line-height:1.4;font-weight:600;color:${brandColor};${variantConfig.companySmallCaps ? "font-variant:small-caps;letter-spacing:0.06em;" : ""}${multilineTextStyle()}padding:0 0 4px 0;">${escapeHtml(sanitized.companyName)}</td></tr>`
+    ? `<tr><td style="${cellResetStyle()}font-family:${fontConfig.identity};font-size:11px;line-height:1.4;font-weight:600;color:${brandColor};${variantConfig.companySmallCaps ? "font-variant:small-caps;letter-spacing:0.06em;" : ""}${multilineTextStyle()}padding:0 0 4px 0;">${escapeHtml(sanitized.companyName)}</td></tr>`
     : "";
   const titleOnlyMarkup = sanitized.jobTitle
-    ? `<tr><td style="${cellResetStyle()}font-size:12px;line-height:1.4;font-weight:400;color:#666666;padding:0 0 8px 0;">${escapeHtml(sanitized.jobTitle)}</td></tr>`
+    ? `<tr><td style="${cellResetStyle()}font-family:${fontConfig.identity};font-size:12px;line-height:1.4;font-weight:400;color:#666666;padding:0 0 8px 0;">${escapeHtml(sanitized.jobTitle)}</td></tr>`
     : "";
-  const titleLineMarkup = `<tr><td style="${cellResetStyle()}font-size:12px;line-height:1.4;font-weight:400;color:#666666;padding:0 0 8px 0;${multilineTextStyle()}">${buildThemedTitleLineMarkup(sanitized, brandColor)}</td></tr>`;
+  const titleLineMarkup = `<tr><td style="${cellResetStyle()}font-size:12px;line-height:1.4;font-weight:400;color:#666666;padding:0 0 8px 0;${multilineTextStyle()}">${buildThemedTitleLineMarkup(sanitized, brandColor, fontConfig)}</td></tr>`;
   const topLogoMarkup = variantConfig.logoPosition === "top" && logoMarkup
     ? `<tr><td style="${cellResetStyle()}padding:0 0 10px 0;">${logoMarkup}</td></tr>`
     : "";
+  const photoDataMarkup = sanitized.photoDataUrl
+    ? buildImageMarkup({
+        source: sanitized.photoDataUrl,
+        alt: sanitized.fullName,
+        size: 48,
+        brandColor,
+        type: "photo",
+        fit: "cover",
+        shape: "circle"
+      })
+    : "";
+  const titleBlockMarkup = `
+    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="${tableResetStyle()}width:100%;">
+      <tbody>
+        ${variantConfig.companyPlacement === "above-name" ? companyMarkup : ""}
+        <tr>
+          <td style="${cellResetStyle()}font-family:${fontConfig.identity};font-size:17px;line-height:1.2;letter-spacing:-0.3px;font-weight:700;color:${brandColor};padding:4px 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
+        </tr>
+        ${variantConfig.companyPlacement === "above-name" ? titleOnlyMarkup : titleLineMarkup}
+        ${variantConfig.companyPlacement === "above-name" ? "" : companyMarkup}
+      </tbody>
+    </table>`.trim();
+  const profileAndTitleMarkup = photoDataMarkup
+    ? `
+    <tr>
+      <td style="${cellResetStyle()}padding:0 0 2px 0;">
+        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="${tableResetStyle()}width:100%;">
+          <tbody>
+            <tr>
+              <td valign="top" width="58" style="${cellResetStyle()}width:58px;padding:4px 10px 0 0;vertical-align:top;">${photoDataMarkup}</td>
+              <td valign="top" style="${cellResetStyle()}padding:0;vertical-align:top;">${titleBlockMarkup}</td>
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>`
+    : titleBlockMarkup;
 
   return `
 <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}font-family:Arial,Helvetica,sans-serif;color:#111827;">
   <tbody>
     ${badgeMarkup}
     ${topLogoMarkup}
-    ${variantConfig.companyPlacement === "above-name" ? companyMarkup : ""}
-    <tr>
-      <td style="${cellResetStyle()}font-size:17px;line-height:1.2;letter-spacing:-0.3px;font-weight:700;color:${brandColor};padding:4px 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
-    </tr>
-    ${variantConfig.companyPlacement === "above-name" ? titleOnlyMarkup : titleLineMarkup}
-    ${variantConfig.companyPlacement === "above-name" ? "" : companyMarkup}
+    ${profileAndTitleMarkup}
     ${contactRows}
     ${socialRows}
     ${ctaMarkup}
@@ -859,21 +1001,19 @@ function buildVisualBlock({ accentBar, badgeText, brandColor, logoMarkup, photoM
   <tbody>
     ${badgeText && side === "right" ? `<tr><td align="center" style="${cellResetStyle()}padding:0 0 10px 0;"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-size:11px;font-weight:700;">${badgeText}</span></td></tr>` : ""}
     ${accentBar ? `<tr><td style="${cellResetStyle()}padding:0 0 10px 0;"><div style="width:100%;max-width:120px;height:6px;border-radius:999px;background:${brandColor};font-size:0;line-height:0;">&nbsp;</div></td></tr>` : ""}
-    <tr>
-      <td style="${cellResetStyle()}padding:0 0 10px 0;">${logoMarkup}</td>
-    </tr>
-    ${photoMarkup ? `<tr><td style="${cellResetStyle()}padding:0 0 8px 0;">${photoMarkup}</td></tr>` : ""}
+    ${logoMarkup ? `<tr><td style="${cellResetStyle()}padding:0 0 10px 0;">${logoMarkup}</td></tr>` : ""}
   </tbody>
 </table>`.trim();
 }
 
 function buildContactRows(draft, mode = "stacked", centered = false, variantConfig = {}) {
+  const fontConfig = getTemplateFontConfig(draft.resolvedLayout);
   const items = [];
   const labelPrefix = variantConfig.contactPrefix || "";
   const useUnifiedHierarchy = Boolean(variantConfig.unifiedHierarchy);
   const valueLinkStyle = useUnifiedHierarchy
-    ? "color:#444444;text-decoration:none;font-size:11px;font-weight:400;"
-    : "color:#444444;text-decoration:none;font-weight:400;";
+    ? "color:#444444;text-decoration:none;font-family:Arial, Helvetica, sans-serif;font-size:11px;font-weight:400;"
+    : "color:#444444;text-decoration:none;font-family:Arial, Helvetica, sans-serif;font-weight:400;";
   if (draft.phone) {
     items.push([`${labelPrefix}Phone`, `<a href="tel:${sanitizePhoneHref(draft.phone)}" style="${valueLinkStyle}">${escapeHtml(draft.phone)}</a>`]);
   }
@@ -891,8 +1031,8 @@ function buildContactRows(draft, mode = "stacked", centered = false, variantConf
     const inlineValue = items
       .map(([label, value]) =>
         useUnifiedHierarchy
-          ? `<span><strong style="color:${draft.brandColor};font-size:11px;font-weight:600;">${label}:</strong> <span style="color:#444444;font-size:11px;font-weight:400;">${value}</span></span>`
-          : `<span><strong style="color:${draft.brandColor};font-weight:600;">${label}:</strong> <span style="color:#444444;font-weight:400;">${value}</span></span>`
+          ? `<span><strong style="color:${draft.brandColor};font-family:${fontConfig.label};font-size:11px;font-weight:600;">${label}:</strong> <span style="color:#444444;font-family:Arial, Helvetica, sans-serif;font-size:11px;font-weight:400;">${value}</span></span>`
+          : `<span><strong style="color:${draft.brandColor};font-family:${fontConfig.label};font-weight:600;">${label}:</strong> <span style="color:#444444;font-family:Arial, Helvetica, sans-serif;font-weight:400;">${value}</span></span>`
       )
       .join(` <span style="color:#9ca3af;">|</span> `);
     return inlineValue
@@ -904,7 +1044,7 @@ function buildContactRows(draft, mode = "stacked", centered = false, variantConf
     return items
       .map(
         ([label, value]) =>
-          `<tr><td ${centered ? 'align="center"' : ""} style="${cellResetStyle()}padding-top:4px;font-size:11px;line-height:1.4;color:#444444;font-weight:400;"><strong style="color:${draft.brandColor};font-size:11px;font-weight:600;">${label}:</strong> <span style="color:#444444;font-size:11px;font-weight:400;">${value}</span></td></tr>`
+          `<tr><td ${centered ? 'align="center"' : ""} style="${cellResetStyle()}padding-top:4px;font-size:11px;line-height:1.4;color:#444444;font-weight:400;"><strong style="color:${draft.brandColor};font-family:${fontConfig.label};font-size:11px;font-weight:600;">${label}:</strong> <span style="color:#444444;font-family:Arial, Helvetica, sans-serif;font-size:11px;font-weight:400;">${value}</span></td></tr>`
       )
       .join("");
   }
@@ -912,7 +1052,7 @@ function buildContactRows(draft, mode = "stacked", centered = false, variantConf
   return items
     .map(
       ([label, value]) =>
-        `<tr><td ${centered ? 'align="center"' : ""} style="${cellResetStyle()}padding-top:4px;font-size:11px;line-height:1.4;color:#444444;font-weight:400;"><span style="display:inline-block;min-width:${centered ? "0" : "62px"};font-size:11px;font-weight:600;color:${draft.brandColor};">${label}:</span> <span style="color:#444444;font-size:11px;font-weight:400;">${value}</span></td></tr>`
+        `<tr><td ${centered ? 'align="center"' : ""} style="${cellResetStyle()}padding-top:4px;font-size:11px;line-height:1.4;color:#444444;font-weight:400;"><span style="display:inline-block;min-width:${centered ? "0" : "62px"};font-family:${fontConfig.label};font-size:11px;font-weight:600;color:${draft.brandColor};">${label}:</span> <span style="color:#444444;font-family:Arial, Helvetica, sans-serif;font-size:11px;font-weight:400;">${value}</span></td></tr>`
     )
     .join("");
 }
@@ -966,8 +1106,9 @@ function buildBannerContactMarkup(draft, mode = "inline", brandColor) {
 }
 
 function buildSplitColumnContactRows(draft, brandColor) {
+  const fontConfig = getTemplateFontConfig(draft.resolvedLayout);
   const items = [];
-  const valueLinkStyle = "color:#444444;text-decoration:none;font-weight:400;";
+  const valueLinkStyle = "color:#444444;text-decoration:none;font-family:Arial, Helvetica, sans-serif;font-weight:400;";
   if (draft.phone) {
     items.push(["P:", `<a href="tel:${sanitizePhoneHref(draft.phone)}" style="${valueLinkStyle}">${escapeHtml(draft.phone)}</a>`]);
   }
@@ -984,7 +1125,7 @@ function buildSplitColumnContactRows(draft, brandColor) {
   return items
     .map(
       ([label, value]) =>
-        `<tr><td style="${cellResetStyle()}padding:0 0 6px 0;font-size:11px;line-height:1.4;color:#444444;font-weight:400;"><span style="display:inline-block;min-width:22px;font-size:11px;font-weight:600;color:${brandColor};">${label}</span> <span style="color:#444444;font-size:11px;font-weight:400;">${value}</span></td></tr>`
+        `<tr><td style="${cellResetStyle()}padding:0 0 6px 0;font-size:11px;line-height:1.4;color:#444444;font-weight:400;"><span style="display:inline-block;min-width:22px;font-family:${fontConfig.label};font-size:11px;font-weight:600;color:${brandColor};">${label}</span> <span style="color:#444444;font-family:Arial, Helvetica, sans-serif;font-size:11px;font-weight:400;">${value}</span></td></tr>`
     )
     .join("");
 }
@@ -1025,19 +1166,44 @@ function buildBorderedCardContactRows(draft, brandColor) {
 }
 
 function buildSocialRows(draft, brandColor, centered = false) {
-  const links = [
-    ["LinkedIn", draft.linkedinUrl],
-    ["Facebook", draft.facebookUrl],
-    ["Instagram", draft.instagramUrl]
-  ]
-    .filter(([, url]) => url)
-    .map(([label, url]) => `<a href="${ensureProtocol(url)}" style="${linkStyle(brandColor)}">${escapeHtml(label)}</a>`);
+  const links = Object.entries(SOCIAL_ICON_URLS)
+    .map(([field, iconUrl]) => {
+      const url = draft[field];
+      return url
+        ? {
+            field,
+            href: ensureProtocol(url),
+            iconUrl
+          }
+        : null;
+    })
+    .filter(Boolean);
 
   if (!links.length) {
     return "";
   }
 
-  return `<tr><td ${centered ? 'align="center"' : ""} style="${cellResetStyle()}padding-top:6px;font-size:12px;line-height:18px;color:#4b5563;">${links.join(' <span style="color:#9ca3af;">|</span> ')}</td></tr>`;
+  return `
+<tr>
+  <td ${centered ? 'align="center"' : ""} style="${cellResetStyle()}padding-top:8px;">
+    <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}${centered ? "margin:0 auto;" : ""}">
+      <tbody>
+        <tr>
+          ${links
+            .map(
+              (link, index) => `
+          <td style="${cellResetStyle()}padding:${index === links.length - 1 ? "0" : "0 8px 0 0"};">
+            <a href="${link.href}" target="_blank" rel="noopener noreferrer" title="${escapeAttribute(link.href)}" style="display:block;text-decoration:none;">
+              <img src="${link.iconUrl}" alt="" width="18" height="18" style="display:block;width:18px;height:18px;border:0;border:none;outline:none;box-shadow:none;text-decoration:none;" />
+            </a>
+          </td>`
+            )
+            .join("")}
+        </tr>
+      </tbody>
+    </table>
+  </td>
+</tr>`.trim();
 }
 
 function buildCtaMarkup({ align, brandColor, ctaStyle, text, url }) {
@@ -1125,12 +1291,23 @@ function buildImageMarkup({ source, alt, size, brandColor, type, fit = "contain"
   const resolvedShape = shape || (type === "photo" ? "circle" : "rounded");
   const radius = resolvedShape === "circle" ? "999px" : resolvedShape === "square" ? "0" : "16px";
   if (source) {
+    if (type === "photo") {
+      return `
+<img
+  src="${source}"
+  alt="${escapeAttribute(alt)}"
+  width="48"
+  height="48"
+  style="display:block;width:48px;height:48px;max-width:48px;border:0;border:none;outline:none;box-shadow:none;text-decoration:none;border-radius:50%;object-fit:cover;"
+/>`.trim();
+    }
+
     return `
 <img
   src="${source}"
   alt="${escapeAttribute(alt)}"
   width="${size}"
-  style="display:block;width:${size}px;height:auto;max-width:${size}px;border:0;border:none;outline:none;box-shadow:none;text-decoration:none;border-radius:${radius};object-fit:${fit};background:#ffffff;"
+  style="display:block;width:${size}px;height:auto;max-width:${size}px;border:0;border:none;outline:none;box-shadow:none;text-decoration:none;border-radius:${radius};object-fit:${fit};"
 />`.trim();
   }
 
@@ -1199,6 +1376,10 @@ function initialsFromAlt(value) {
       .map((chunk) => chunk[0]?.toUpperCase() || "")
       .join("") || "SP"
   );
+}
+
+function getTemplateFontConfig(layout) {
+  return TEMPLATE_FONT_STACKS[normalizeLayoutValue(layout)] || TEMPLATE_FONT_STACKS["professional-classic"];
 }
 
 function normalizedColor(value) {

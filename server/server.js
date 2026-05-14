@@ -16,7 +16,8 @@ const distPath = path.resolve(projectRoot, "dist");
 dotenv.config({ path: path.resolve(projectRoot, ".env") });
 
 const stripe = process.env.STRIPE_SECRET_KEY ? new Stripe(process.env.STRIPE_SECRET_KEY) : null;
-const monthlyPriceId = process.env.STRIPE_PRICE_ID || process.env.STRIPE_MONTHLY_PRICE_ID || "";
+const proMonthlyPriceId = process.env.STRIPE_PRO_MONTHLY_PRICE_ID || process.env.STRIPE_MONTHLY_PRICE_ID || process.env.STRIPE_PRICE_ID || "";
+const businessMonthlyPriceId = process.env.STRIPE_BUSINESS_MONTHLY_PRICE_ID || "";
 
 app.use(cors());
 app.use(express.json({ limit: "8mb" }));
@@ -28,7 +29,11 @@ app.get("/api/health", (_request, response) => {
     integrations: {
       openaiConfigured: Boolean(process.env.OPENAI_API_KEY),
       logoAiEnabled: Boolean(process.env.OPENAI_API_KEY),
-      stripeConfigured: Boolean(stripe && monthlyPriceId)
+      stripeConfigured: Boolean(stripe && proMonthlyPriceId),
+      billingPlans: {
+        proSelfServe: Boolean(stripe && proMonthlyPriceId),
+        businessSelfServe: Boolean(stripe && businessMonthlyPriceId)
+      }
     }
   });
 });
@@ -44,20 +49,28 @@ app.post("/api/ai/signature-suggestions", async (request, response) => {
 
 app.post("/api/billing/create-checkout-session", async (request, response) => {
   try {
-    if (!stripe || !monthlyPriceId) {
+    const plan = String(request.body?.plan || "pro").trim().toLowerCase();
+    const isBusinessPlan = plan === "business";
+    const selectedPriceId = isBusinessPlan ? businessMonthlyPriceId : proMonthlyPriceId;
+
+    if (!stripe || !selectedPriceId) {
+      const unavailableResponse = buildBillingUnavailableResponseForPlan(isBusinessPlan ? "business" : "pro");
+      return response.status(503).json(unavailableResponse);
+    }
+
+    if (plan !== "pro" && plan !== "business") {
       return response.status(503).json(buildBillingUnavailableResponse());
     }
 
-    const plan = String(request.body?.plan || "pro").trim().toLowerCase();
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
-      line_items: [{ price: monthlyPriceId, quantity: 1 }],
+      line_items: [{ price: selectedPriceId, quantity: 1 }],
       success_url: `${getAppOrigin(request)}/upgrade?checkout=success`,
       cancel_url: `${getAppOrigin(request)}/upgrade?checkout=cancel`,
       metadata: {
         product: "signature-pilot-ai",
-        plan: plan === "business" ? "business" : "pro"
+        plan: isBusinessPlan ? "business" : "pro"
       }
     });
 
@@ -133,10 +146,23 @@ function getAppOrigin(request) {
 }
 
 function buildBillingUnavailableResponse() {
+  return buildBillingUnavailableResponseForPlan("pro");
+}
+
+function buildBillingUnavailableResponseForPlan(plan) {
+  const normalizedPlan = plan === "business" ? "business" : "pro";
+  const missingStripeKeys = !stripe || !proMonthlyPriceId;
+  const businessSelfServeLive = Boolean(stripe && businessMonthlyPriceId);
+
   return {
     configured: false,
-    message: "Billing not configured yet. Add Stripe keys to enable upgrades.",
-    missingStripeKeys: !stripe || !monthlyPriceId
+    message:
+      normalizedPlan === "business"
+        ? "Business self-serve billing is not configured yet. Use Pro checkout today or contact us for team rollout planning."
+        : "Pro checkout is not configured yet. Add Stripe keys to enable upgrades.",
+    plan: normalizedPlan,
+    missingStripeKeys,
+    businessSelfServeLive
   };
 }
 

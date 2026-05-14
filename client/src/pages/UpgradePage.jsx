@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 const PAID_PLANS = [
   {
@@ -12,14 +13,32 @@ const PAID_PLANS = [
     plan: "business",
     title: "Business",
     price: "$49/month base",
-    copy: "Reserved for the recurring team plan: centralized brand control, shared templates, employee management, and future workspace sync.",
+    copy: "Reserved for the recurring team plan: centralized brand control, shared templates, employee profile planning, and future workspace sync.",
     action: "interest"
+  },
+  {
+    plan: "enterprise",
+    title: "Enterprise",
+    price: "Custom",
+    copy: "For larger organizations that want rollout planning, governance review, and future deployment support.",
+    action: "contact"
   }
 ];
 
 export default function UpgradePage() {
+  const [searchParams] = useSearchParams();
   const [status, setStatus] = useState("");
   const [loadingPlan, setLoadingPlan] = useState("");
+  const checkoutStatus = searchParams.get("checkout");
+  const checkoutNotice = useMemo(() => {
+    if (checkoutStatus === "success") {
+      return "Checkout completed. If Stripe returned you here, your Pro upgrade flow finished and your confirmation email should be on the way.";
+    }
+    if (checkoutStatus === "cancel") {
+      return "Checkout was canceled. You can keep using the free builder and return to upgrade any time.";
+    }
+    return "";
+  }, [checkoutStatus]);
 
   async function handleUpgrade(plan) {
     setLoadingPlan(plan);
@@ -44,7 +63,11 @@ export default function UpgradePage() {
   }
 
   function handleBusinessInterest() {
-    setStatus("Business rollout is being staged next. Use Pro today, and reach out when you want centralized team management planning.");
+    setStatus("Business self-serve billing is not live yet. Use Pro today, and reach out when you want centralized team rollout planning.");
+  }
+
+  function handleEnterpriseInterest() {
+    setStatus("Enterprise is contact-led only right now. Reach out when you need larger rollout planning or future governance support.");
   }
 
   return (
@@ -55,6 +78,8 @@ export default function UpgradePage() {
         <p className="hero-subheadline">No commitment. Cancel anytime. Signatures stay yours.</p>
       </section>
 
+      {checkoutNotice ? <section className="panel inline-banner">{checkoutNotice}</section> : null}
+
       <section className="pricing-grid">
         {PAID_PLANS.map((plan) => (
           <article key={plan.plan} className={`pricing-card ${plan.plan === "pro" ? "pricing-card-featured" : ""}`}>
@@ -62,14 +87,31 @@ export default function UpgradePage() {
               <p className="pricing-name">{plan.title}</p>
               <h2>{plan.price}</h2>
               <p>{plan.copy}</p>
+              {plan.action !== "checkout" ? <p className="support-copy">Self-serve checkout is not live for this plan yet.</p> : null}
             </div>
             <button
               className={`button ${plan.plan === "pro" ? "button-primary" : "button-secondary"}`}
               disabled={loadingPlan === plan.plan}
               type="button"
-              onClick={() => (plan.action === "checkout" ? handleUpgrade(plan.plan) : handleBusinessInterest())}
+              onClick={() => {
+                if (plan.action === "checkout") {
+                  handleUpgrade(plan.plan);
+                  return;
+                }
+                if (plan.action === "interest") {
+                  handleBusinessInterest();
+                  return;
+                }
+                handleEnterpriseInterest();
+              }}
             >
-              {loadingPlan === plan.plan ? "Opening..." : plan.action === "checkout" ? "Upgrade to Pro" : "Business waitlist"}
+              {loadingPlan === plan.plan
+                ? "Opening..."
+                : plan.action === "checkout"
+                  ? "Upgrade to Pro"
+                  : plan.action === "interest"
+                    ? "Business waitlist"
+                    : "Contact us"}
             </button>
           </article>
         ))}
@@ -96,7 +138,7 @@ export default function UpgradePage() {
               <li>Branding removal</li>
               <li>Premium families and variants</li>
               <li>Raw HTML and file export</li>
-              <li>Advanced styling and team rollout support</li>
+              <li>Advanced styling and future team rollout support</li>
             </ul>
           </div>
         </div>

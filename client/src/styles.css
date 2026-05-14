@@ -2398,18 +2398,31 @@ h3 {
   .topbar-nav,
   .topbar-actions {
     width: 100%;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 0.5rem;
     justify-content: stretch;
   }
 
+  .topbar-nav {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .topbar-nav::-webkit-scrollbar {
+    display: none;
+  }
+
   .topbar-link,
   .topbar-actions .button {
-    flex: 1 1 140px;
+    flex: 0 0 auto;
     min-width: 0;
     text-align: center;
     padding-left: 0.8rem;
     padding-right: 0.8rem;
+  }
+
+  .topbar-actions .button {
+    flex: 1 1 0;
   }
 
   .hero-card {
@@ -2894,9 +2907,17 @@ h3 {
     font-size: 9px;
   }
 
-  .topbar-link,
+  .topbar-link {
+    padding-left: 0.7rem;
+    padding-right: 0.7rem;
+  }
+
+  .topbar-actions {
+    gap: 0.45rem;
+  }
+
   .topbar-actions .button {
-    flex-basis: 100%;
+    flex: 1 1 calc(50% - 0.25rem);
   }
 }
 

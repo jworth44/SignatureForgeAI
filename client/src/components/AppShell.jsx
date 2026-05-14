@@ -5,7 +5,7 @@ const NAV_ITEMS = [
   { to: "/", label: "Home", end: true },
   { to: "/builder", label: "Builder" },
   { to: "/pricing", label: "Pricing" },
-  { to: "/install", label: "Install Guide" },
+  { to: "/install-guide", label: "Install Guide" },
   { to: "/upgrade", label: "Upgrade" }
 ];
 

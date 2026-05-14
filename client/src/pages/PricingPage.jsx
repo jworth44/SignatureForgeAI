@@ -9,7 +9,7 @@ const PLANS = [
     cta: "Start Free",
     to: "/builder",
     features: [
-      "1 saved signature",
+      "1 active signature draft",
       "Core signature builder",
       "Logo upload",
       "Basic templates with limited variants",
@@ -23,7 +23,7 @@ const PLANS = [
   {
     name: "Pro Individual",
     price: "From $9/month",
-    copy: "For professionals who want cleaner exports, stronger styling control, and unbranded signatures.",
+    copy: "For professionals who want cleaner exports, stronger styling control, unbranded signatures, and the full template set.",
     cta: "Upgrade to Pro",
     to: "/upgrade",
     featured: true,
@@ -31,13 +31,11 @@ const PLANS = [
       "Remove Signature Pilot AI branding",
       "All template families",
       "All 12 built-in variants",
-      "Unlimited saved signatures",
       "Raw HTML export",
       "Download HTML",
       "Advanced CTA destinations",
       "Advanced styling controls",
       "Premium typography and layout controls",
-      "Version history",
       "One-click polish and smart recommendations"
     ]
   },
@@ -45,14 +43,14 @@ const PLANS = [
     name: "Business",
     price: "$49/month base",
     copy: "Positioned for teams who need centralized signature control, consistent branding, and shared rollout standards.",
-    cta: "See Team Plans",
+    cta: "Team rollout info",
     to: "/upgrade",
     features: [
       "Up to 10 users",
       "Team signature management",
       "Centralized brand control",
       "Shared templates",
-      "Employee profile management",
+      "Employee profile planning",
       "Team-wide CTA and disclaimer control",
       "Role and department template support",
       "Campaigns, analytics, and workspace sync on the roadmap"
@@ -62,7 +60,7 @@ const PLANS = [
     name: "Enterprise",
     price: "Custom",
     copy: "For larger organizations planning future rollout, governance, and deployment workflows.",
-    cta: "Talk to us",
+    cta: "Contact us",
     to: "/upgrade",
     features: [
       "Custom rollout planning",

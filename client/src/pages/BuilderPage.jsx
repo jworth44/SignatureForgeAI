@@ -1541,7 +1541,7 @@ export default function BuilderPage() {
           <h1>Build once, paste anywhere.</h1>
         </div>
         <div className="generator-builder-topactions">
-          <Link className="button button-secondary" to="/install">
+          <Link className="button button-secondary" to="/install-guide">
             Install Guide
           </Link>
           <Link className="button button-primary" to="/upgrade">

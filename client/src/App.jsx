@@ -14,6 +14,7 @@ export default function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/builder" element={<BuilderPage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/install-guide" element={<InstallGuidePage />} />
         <Route path="/install" element={<InstallGuidePage />} />
         <Route path="/upgrade" element={<UpgradePage />} />
         <Route path="*" element={<Navigate replace to="/" />} />

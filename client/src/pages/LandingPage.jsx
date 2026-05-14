@@ -68,7 +68,7 @@ export default function LandingPage() {
           <p className="eyebrow">Signature Pilot AI</p>
           <h1>Professional email signatures in minutes.</h1>
           <p className="hero-subheadline">
-            Signature Pilot AI is an AI-powered email signature builder for Gmail, Outlook, Apple Mail, Yahoo, and any HTML email client, with live preview, export tools, and AI-guided suggestions.
+            Signature Pilot AI is a compatibility-first email signature builder for Gmail, Outlook, Apple Mail, Yahoo, and other major email clients, with live preview, export tools, and smart suggestions.
           </p>
           <div className="hero-actions">
             <Link className="button button-primary" to="/builder">
@@ -175,14 +175,14 @@ export default function LandingPage() {
           <p className="eyebrow">Free vs Pro</p>
           <h2>Start with the essentials. Upgrade when you need more control.</h2>
         </div>
-        <div className="pricing-mini-grid">
+          <div className="pricing-mini-grid">
           <div className="pricing-mini-card">
             <strong>Free</strong>
-            <p>Executive, Minimal, and Mobile Compact templates with branded copy-ready signatures.</p>
+            <p>Core builder access, logo upload, compatibility-safe templates, and branded copy-ready signatures.</p>
           </div>
           <div className="pricing-mini-card pricing-mini-card-accent">
-            <strong>Pro</strong>
-            <p>Contractor and Corporate templates, unbranded HTML export, advanced controls, and AI-powered polish.</p>
+            <strong>Pro Individual</strong>
+            <p>Unbranded export, all template families, advanced styling controls, and raw HTML or file export.</p>
           </div>
         </div>
       </section>

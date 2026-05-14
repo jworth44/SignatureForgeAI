@@ -576,11 +576,11 @@ export default function BuilderPage() {
     () =>
       Object.fromEntries(
         TEMPLATE_OPTIONS.map((template) => {
-          const previewDraft = buildTemplatePreviewDraft(template, draft);
+          const previewDraft = buildTemplatePreviewDraft(template, draft, artifacts.effectiveDraft.layout);
           return [template.value, generateSignatureArtifacts(previewDraft)];
         })
       ),
-    [draft]
+    [draft, artifacts.effectiveDraft.layout]
   );
 
   const stepIndex = STEP_ITEMS.findIndex((step) => step.key === activeStep);
@@ -1189,7 +1189,7 @@ export default function BuilderPage() {
                   <div className="generator-template-heading">
                     <div className="generator-template-title-group">
                       <strong>{template.label}</strong>
-                      <span className="generator-template-personality">{previewProfile?.galleryNote || template.description}</span>
+                      <span className="generator-template-fit">{previewProfile?.fit || "Professional communication"}</span>
                     </div>
                     <div className="generator-template-badge-stack">
                       <span
@@ -1213,15 +1213,9 @@ export default function BuilderPage() {
                     </div>
                   </div>
                   <div className="generator-template-meta-row">
-                    <span>{previewProfile?.fit || "Professional communication"}</span>
-                    <span>{template.compatibility === "universal" ? "Compatibility-first" : "Higher visual polish"}</span>
+                    <span>{template.compatibility === "universal" ? "Outlook-safer" : "Richer visual style"}</span>
+                    {active ? <span>Matches live preview</span> : null}
                   </div>
-                  <p className="support-copy">{template.description}</p>
-                  <p className="support-copy generator-template-compatibility-note">
-                    {template.compatibility === "universal"
-                      ? "Best when Outlook-safe copy/paste is the priority."
-                      : "More visual polish, but test in Outlook before broad rollout."}
-                  </p>
                   <div className="generator-button-row">
                     <button
                       className={`button ${active ? "button-primary" : locked ? "button-locked" : "button-secondary"}`}
@@ -1763,7 +1757,10 @@ export default function BuilderPage() {
         </div>
       </section>
 
-      <section className="generator-builder-shell" style={{ width: "100%", display: "flex", flexDirection: "row" }}>
+      <section
+        className={`generator-builder-shell ${activeStep === "templates" ? "generator-builder-shell-templates" : ""}`}
+        style={{ width: "100%", display: "flex", flexDirection: "row" }}
+      >
         <aside className="generator-step-rail">
           {STEP_ITEMS.map((step) => {
             const active = step.key === activeStep;
@@ -1865,9 +1862,10 @@ function UploadAssetCard({ description, disabled = false, inputId, label, onFile
   );
 }
 
-function buildTemplatePreviewDraft(template, draft) {
+function buildTemplatePreviewDraft(template, draft, activeLayout) {
   const fallback = getDefaultDraft();
   const previewProfile = TEMPLATE_PREVIEW_PROFILES[template.value] || {};
+  const isActiveLayout = template.value === activeLayout;
   const previewBase = {
     "professional-classic": { brandColor: TEMPLATE_DEFAULT_COLORS["professional-classic"], logoSize: "medium", showDivider: false, includeBranding: false, templateVariant: 1 },
     "executive-corporate": { brandColor: TEMPLATE_DEFAULT_COLORS["executive-corporate"], logoSize: "medium", showDivider: true, includeBranding: false, templateVariant: 1 },
@@ -1886,13 +1884,14 @@ function buildTemplatePreviewDraft(template, draft) {
   return {
     ...fallback,
     ...draft,
-    ...previewProfile,
+    ...(isActiveLayout ? {} : previewProfile),
     ...(previewBase[template.value] || {}),
     tier: "pro",
     layout: template.value,
     showTemplateTags: true,
     ctaDestinationType: "custom",
-    templateVariant: previewProfile.templateVariant || 1,
+    templateVariant: isActiveLayout ? draft.templateVariant || 1 : previewProfile.templateVariant || 1,
+    includeBranding: false,
     renderMode: "desktop"
   };
 }

@@ -73,11 +73,11 @@ export default function SignaturePreview({
               type="button"
               onClick={onPreviousVariant}
             >
-              ←
+              <span aria-hidden="true">&larr;</span>
             </button>
             <span>{`Variant ${artifacts.effectiveDraft.templateVariant} of 12`}</span>
             <button aria-label="Next variant" className="workspace-variant-arrow" type="button" onClick={onNextVariant}>
-              →
+              <span aria-hidden="true">&rarr;</span>
             </button>
           </span>
           <span>{artifacts.effectiveDraft.showDivider ? "Divider on" : "Divider off"}</span>

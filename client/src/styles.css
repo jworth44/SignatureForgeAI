@@ -133,6 +133,8 @@ img {
   align-items: center;
   gap: 10px;
   text-decoration: none;
+  flex: 0 1 auto;
+  max-width: 100%;
 }
 
 .brand-logo-icon {
@@ -146,6 +148,7 @@ img {
   display: flex;
   flex-direction: column;
   gap: 1px;
+  min-width: 0;
 }
 
 .brand-name {
@@ -154,6 +157,7 @@ img {
   color: var(--color-text-primary, #1a1a2e);
   letter-spacing: -0.3px;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .brand-name strong {
@@ -165,6 +169,7 @@ img {
   font-size: 11px;
   color: var(--color-text-secondary, #666);
   line-height: 1;
+  white-space: nowrap;
 }
 
 .brand-logo {
@@ -2358,12 +2363,29 @@ h3 {
   }
 
   .brand-lockup {
-    gap: 0;
+    width: 100%;
+    gap: 8px;
+    justify-content: flex-start;
   }
 
-  .brand-logo {
-    height: 120px;
-    max-width: 640px;
+  .brand-logo-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .brand-text {
+    gap: 2px;
+  }
+
+  .brand-name {
+    font-size: 15px;
+    white-space: normal;
+  }
+
+  .brand-tagline {
+    font-size: 10px;
+    line-height: 1.2;
+    white-space: normal;
   }
 
   .brand-mark,
@@ -2378,6 +2400,7 @@ h3 {
     width: 100%;
     flex-wrap: wrap;
     gap: 0.5rem;
+    justify-content: stretch;
   }
 
   .topbar-link,
@@ -2833,6 +2856,35 @@ h3 {
   overflow: visible;
   white-space: normal;
   min-height: 3.2em;
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    padding: 0.7rem 0.75rem;
+  }
+
+  .brand-lockup {
+    align-items: flex-start;
+  }
+
+  .brand-logo-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .brand-name {
+    font-size: 14px;
+    line-height: 1.15;
+  }
+
+  .brand-tagline {
+    font-size: 9px;
+  }
+
+  .topbar-link,
+  .topbar-actions .button {
+    flex-basis: 100%;
+  }
 }
 
 .generator-template-card .button-secondary {

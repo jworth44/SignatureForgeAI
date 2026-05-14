@@ -126,8 +126,8 @@ img {
 .brand-logo {
   display: block;
   width: auto;
-  height: 56px;
-  max-width: 300px;
+  height: 140px;
+  max-width: 750px;
   object-fit: contain;
   flex: 0 0 auto;
 }
@@ -2311,8 +2311,8 @@ h3 {
   }
 
   .brand-logo {
-    height: 48px;
-    max-width: 260px;
+    height: 120px;
+    max-width: 640px;
   }
 
   .brand-mark,

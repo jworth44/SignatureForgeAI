@@ -135,7 +135,7 @@ export function generateSignatureHtml({ draft, tier, includeBranding }) {
   const logoMarkup = buildImageMarkup({
     source: sanitized.logoDataUrl || sanitized.photoDataUrl,
     alt: sanitized.companyName || sanitized.fullName,
-    size: getLogoWidth(sanitized),
+    size: variantConfig.logoSizeOverride || getLogoWidth(sanitized),
     brandColor,
     type: "logo",
     fit: sanitized.logoFit,
@@ -311,11 +311,57 @@ function resolveVariantConfig(draft) {
     case "legal-finance":
       return { ...shared, structure: "two-column-split", logoSide: "left", supportsDivider: false, topBadge: true, nameSize: 21, titleSize: 12, ctaStyle: "pill" };
     case "health-medical":
-      return { ...shared, structure: "bordered-card", isStacked: false, supportsDivider: false, topBadge: false, nameSize: 20, titleSize: 12, ctaStyle: "button" };
+      return {
+        ...shared,
+        structure: "bordered-card",
+        isStacked: false,
+        supportsDivider: false,
+        topBadge: false,
+        nameSize: 20,
+        titleSize: 12,
+        ctaStyle: "button",
+        borderedCardOptions: {
+          borderColor: "#e2e8f0",
+          accentColor: "#4CAF93",
+          bulletColor: "#4CAF93",
+          footerColor: "#4CAF93",
+          companyColor: "#4CAF93"
+        }
+      };
     case "creative-designer":
-      return { ...shared, structure: "bordered-card", logoSide: "left", supportsDivider: false, topBadge: true, nameSize: 21, titleSize: 12, ctaStyle: "pill" };
+      return {
+        ...shared,
+        structure: "bordered-card",
+        logoSide: "left",
+        supportsDivider: false,
+        topBadge: true,
+        nameSize: 21,
+        titleSize: 12,
+        ctaStyle: "pill",
+        borderedCardOptions: {
+          borderColor: "theme",
+          accentColor: "theme",
+          bulletColor: "theme",
+          footerColor: "theme",
+          companyColor: "theme"
+        }
+      };
     case "tech-saas":
-      return { ...shared, structure: "chip", logoSide: "left", supportsDivider: false, topBadge: true, nameSize: 21, titleSize: 12, ctaStyle: "pill" };
+      return {
+        ...shared,
+        structure: "chip",
+        logoSide: "left",
+        supportsDivider: false,
+        topBadge: true,
+        nameSize: 15,
+        titleSize: 12,
+        ctaStyle: "pill",
+        logoPosition: "top",
+        logoSizeOverride: 32,
+        companyPlacement: "above-name",
+        companySmallCaps: true,
+        contactPrefix: "→ "
+      };
     case "mobile-compact":
       return { ...shared, structure: "mobile", isStacked: true, supportsDivider: false, topBadge: variantIndex % 2 === 0, nameSize: 19, titleSize: 12, ctaStyle: "button" };
     case "signature-card":
@@ -356,7 +402,10 @@ function renderVariantLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, 
           sanitized,
           variantConfig
         },
-        { showDivider }
+        {
+          showDivider,
+          ...(variantConfig.borderedCardOptions || {})
+        }
       );
     case "two-column-split":
       return renderTwoColumnSplitLayout(
@@ -381,7 +430,7 @@ function renderVariantLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, 
 }
 
 function renderSplitLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, sanitized, showDivider, variantConfig }) {
-  const infoBlock = buildInfoBlock({ brandColor, familyMeta, sanitized, variantConfig });
+  const infoBlock = buildInfoBlock({ brandColor, familyMeta, logoMarkup, sanitized, variantConfig });
   const visualBlock = buildVisualBlock({
     accentBar: sanitized.showTemplateTags && variantConfig.accentBar,
     badgeText: sanitized.showTemplateTags && variantConfig.topBadge ? familyMeta.name : "",
@@ -401,6 +450,17 @@ function renderSplitLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, sa
   const wrapperStyle = variantConfig.wrapInCard
     ? `width:100%;max-width:620px;padding:16px;border-radius:20px;background:${fadeColor(brandColor, 0.05)};`
     : "width:100%;max-width:620px;";
+
+  if (variantConfig.logoPosition === "top") {
+    return `
+<table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}${wrapperStyle}font-family:Arial,Helvetica,sans-serif;color:#111827;">
+  <tbody>
+    <tr>
+      <td valign="top" style="${cellResetStyle()}padding:0;">${infoBlock}</td>
+    </tr>
+  </tbody>
+</table>`.trim();
+  }
 
   return `
 <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}${wrapperStyle}font-family:Arial,Helvetica,sans-serif;color:#111827;">
@@ -517,36 +577,47 @@ function renderTwoColumnSplitLayout(data, options = {}) {
 
 function renderBorderedCardLayout(data, options = {}) {
   const { brandColor, familyMeta, sanitized } = data;
-  const { showDivider = false } = options;
-  const lightTint = tintHexColor(brandColor, 0.92, "#e8f0fe");
+  const {
+    showDivider = false,
+    borderColor = "theme",
+    accentColor = "theme",
+    bulletColor = "theme",
+    footerColor = "theme",
+    companyColor = "theme"
+  } = options;
+  const resolvedBorderColor = borderColor === "theme" ? brandColor : borderColor;
+  const resolvedAccentColor = accentColor === "theme" ? brandColor : accentColor;
+  const resolvedBulletColor = bulletColor === "theme" ? brandColor : bulletColor;
+  const resolvedFooterColor = footerColor === "theme" ? brandColor : footerColor;
+  const resolvedCompanyColor = companyColor === "theme" ? brandColor : companyColor;
   const borderedLogoMarkup = buildBorderedCardLogoMarkup({
     source: sanitized.logoDataUrl || sanitized.photoDataUrl,
     alt: sanitized.companyName || sanitized.fullName
   });
-  const contactRows = buildBorderedCardContactRows(sanitized, brandColor);
+  const contactRows = buildBorderedCardContactRows(sanitized, resolvedBulletColor);
   const ctaHref = resolveCtaHref(sanitized);
   const ctaText = sanitized.ctaText || familyMeta.label;
   const footerMarkup = ctaHref && ctaText
     ? `
     <tr>
-      <td bgcolor="${brandColor}" align="center" style="${cellResetStyle()}background-color:${brandColor};padding:10px;">
+      <td bgcolor="${resolvedFooterColor}" align="center" style="${cellResetStyle()}background-color:${resolvedFooterColor};padding:10px;">
         <a href="${ctaHref}" target="_blank" rel="noopener noreferrer" title="${escapeAttribute(ctaHref)}" style="display:inline-block;font-size:12px;line-height:16px;font-weight:700;color:#ffffff;text-decoration:none;">${escapeHtml(ctaText)}</a>
       </td>
     </tr>`
     : `
     <tr>
-      <td bgcolor="${brandColor}" style="${cellResetStyle()}background-color:${brandColor};font-size:0;line-height:0;padding:0;height:4px;">&nbsp;</td>
+      <td bgcolor="${resolvedFooterColor}" style="${cellResetStyle()}background-color:${resolvedFooterColor};font-size:0;line-height:0;padding:0;height:4px;">&nbsp;</td>
     </tr>`;
 
   return `
 <table cellpadding="0" cellspacing="0" border="0" width="100%" style="${tableResetStyle()}width:100%;max-width:520px;font-family:Arial,Helvetica,sans-serif;color:#111827;">
   <tbody>
     <tr>
-      <td style="${cellResetStyle()}border:1px solid ${brandColor};padding:0;">
+      <td style="${cellResetStyle()}border:1px solid ${resolvedBorderColor};padding:0;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%" style="${tableResetStyle()}width:100%;">
           <tbody>
             <tr>
-              <td bgcolor="${lightTint}" style="${cellResetStyle()}background-color:${lightTint};font-size:0;line-height:0;height:8px;padding:0;">&nbsp;</td>
+              <td bgcolor="${resolvedAccentColor}" style="${cellResetStyle()}background-color:${resolvedAccentColor};font-size:0;line-height:0;height:6px;padding:0;">&nbsp;</td>
             </tr>
             <tr>
               <td style="${cellResetStyle()}padding:20px;">
@@ -561,7 +632,7 @@ function renderBorderedCardLayout(data, options = {}) {
                               <td style="${cellResetStyle()}font-size:16px;line-height:20px;font-weight:700;color:#1a1a2e;padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
                             </tr>
                             ${sanitized.jobTitle ? `<tr><td style="${cellResetStyle()}font-size:12px;line-height:16px;color:#666666;padding:0 0 4px 0;">${escapeHtml(sanitized.jobTitle)}</td></tr>` : ""}
-                            ${sanitized.companyName ? `<tr><td style="${cellResetStyle()}font-size:11px;line-height:15px;color:${brandColor};font-weight:700;padding:0;">${escapeHtml(sanitized.companyName)}</td></tr>` : ""}
+                            ${sanitized.companyName ? `<tr><td style="${cellResetStyle()}font-size:11px;line-height:15px;color:${resolvedCompanyColor};font-weight:700;padding:0;">${escapeHtml(sanitized.companyName)}</td></tr>` : ""}
                           </tbody>
                         </table>
                       </td>
@@ -728,8 +799,8 @@ function renderCardLayout({ brandColor, familyMeta, logoMarkup, photoMarkup, san
 </table>`.trim();
 }
 
-function buildInfoBlock({ brandColor, familyMeta, sanitized, variantConfig }) {
-  const contactRows = buildContactRows(sanitized, variantConfig.contactMode, false);
+function buildInfoBlock({ brandColor, familyMeta, logoMarkup, sanitized, variantConfig }) {
+  const contactRows = buildContactRows(sanitized, variantConfig.contactMode, false, variantConfig);
   const socialRows = buildSocialRows(sanitized, brandColor, false);
   const ctaMarkup = buildCtaMarkup({
     align: "left",
@@ -741,17 +812,28 @@ function buildInfoBlock({ brandColor, familyMeta, sanitized, variantConfig }) {
   const badgeMarkup = sanitized.showTemplateTags && variantConfig.topBadge
     ? `<tr><td style="${cellResetStyle()}padding:0 0 8px 0;"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;">${familyMeta.name}</span></td></tr>`
     : "";
+  const companyMarkup = sanitized.companyName
+    ? `<tr><td style="${cellResetStyle()}font-size:11px;line-height:15px;font-weight:700;color:${brandColor};${variantConfig.companySmallCaps ? "font-variant:small-caps;letter-spacing:0.06em;" : ""}padding:0 0 4px 0;">${escapeHtml(sanitized.companyName)}</td></tr>`
+    : "";
+  const titleOnlyMarkup = sanitized.jobTitle
+    ? `<tr><td style="${cellResetStyle()}font-size:${variantConfig.titleSize}px;line-height:${variantConfig.titleSize + 6}px;font-weight:${familyMeta.accentWeight};color:${brandColor};padding:0 0 8px 0;">${escapeHtml(sanitized.jobTitle)}</td></tr>`
+    : "";
+  const titleLineMarkup = `<tr><td style="${cellResetStyle()}font-size:${variantConfig.titleSize}px;line-height:${variantConfig.titleSize + 6}px;font-weight:${familyMeta.accentWeight};color:${brandColor};padding:0 0 8px 0;">${escapeHtml(buildTitleLine(sanitized))}</td></tr>`;
+  const topLogoMarkup = variantConfig.logoPosition === "top" && logoMarkup
+    ? `<tr><td style="${cellResetStyle()}padding:0 0 10px 0;">${logoMarkup}</td></tr>`
+    : "";
 
   return `
 <table cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}font-family:Arial,Helvetica,sans-serif;color:#111827;">
   <tbody>
     ${badgeMarkup}
+    ${topLogoMarkup}
+    ${variantConfig.companyPlacement === "above-name" ? companyMarkup : ""}
     <tr>
       <td style="${cellResetStyle()}font-size:${variantConfig.nameSize}px;line-height:${variantConfig.nameSize + 6}px;font-weight:700;padding:0 0 4px 0;">${escapeHtml(sanitized.fullName)}</td>
     </tr>
-    <tr>
-      <td style="${cellResetStyle()}font-size:${variantConfig.titleSize}px;line-height:${variantConfig.titleSize + 6}px;font-weight:${familyMeta.accentWeight};color:${brandColor};padding:0 0 8px 0;">${escapeHtml(buildTitleLine(sanitized))}</td>
-    </tr>
+    ${variantConfig.companyPlacement === "above-name" ? titleOnlyMarkup : titleLineMarkup}
+    ${variantConfig.companyPlacement === "above-name" ? "" : companyMarkup}
     ${contactRows}
     ${socialRows}
     ${ctaMarkup}
@@ -776,20 +858,21 @@ function buildVisualBlock({ accentBar, badgeText, brandColor, logoMarkup, photoM
 </table>`.trim();
 }
 
-function buildContactRows(draft, mode = "stacked", centered = false) {
+function buildContactRows(draft, mode = "stacked", centered = false, variantConfig = {}) {
   const rows = [];
   const items = [];
+  const labelPrefix = variantConfig.contactPrefix || "";
   if (draft.phone) {
-    items.push(["Phone", `<a href="tel:${sanitizePhoneHref(draft.phone)}" style="${linkStyle(draft.brandColor)}">${escapeHtml(draft.phone)}</a>`]);
+    items.push([`${labelPrefix}Phone`, `<a href="tel:${sanitizePhoneHref(draft.phone)}" style="${linkStyle(draft.brandColor)}">${escapeHtml(draft.phone)}</a>`]);
   }
   if (draft.email) {
-    items.push(["Email", `<a href="mailto:${escapeAttribute(draft.email)}" style="${linkStyle(draft.brandColor)}">${escapeHtml(draft.email)}</a>`]);
+    items.push([`${labelPrefix}Email`, `<a href="mailto:${escapeAttribute(draft.email)}" style="${linkStyle(draft.brandColor)}">${escapeHtml(draft.email)}</a>`]);
   }
   if (draft.website) {
-    items.push(["Web", `<a href="${ensureProtocol(draft.website)}" style="${linkStyle(draft.brandColor)}">${escapeHtml(stripProtocol(draft.website))}</a>`]);
+    items.push([`${labelPrefix}Web`, `<a href="${ensureProtocol(draft.website)}" style="${linkStyle(draft.brandColor)}">${escapeHtml(stripProtocol(draft.website))}</a>`]);
   }
   if (draft.location) {
-    items.push(["Location", escapeHtml(draft.location)]);
+    items.push([`${labelPrefix}Location`, escapeHtml(draft.location)]);
   }
 
   if (mode === "inline") {

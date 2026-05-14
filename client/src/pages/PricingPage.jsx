@@ -5,28 +5,71 @@ const PLANS = [
   {
     name: "Free",
     price: "$0",
-    copy: "Perfect for solo builders who want a clean signature fast.",
-    features: ["Executive, Minimal, and Mobile Compact templates", "Guided copy-ready export", "Basic brand color", "Basic logo upload", "Signature Pilot AI branding included"]
-  },
-      {
-        name: "Pro",
-        price: "$12/month",
-        copy: "Unlock premium layouts and AI-powered signature copy.",
+    copy: "Build one professional signature, add your logo, and copy it safely into major email clients.",
+    cta: "Start Free",
+    to: "/builder",
     features: [
-      "Contractor and Corporate templates",
-      "AI copy suggestions",
-      "Advanced layout controls",
-      "Multiple signatures",
+      "1 saved signature",
+      "Core signature builder",
+      "Logo upload",
+      "Basic templates with limited variants",
+      "Basic CTA links",
+      "Copy rendered signature",
+      "Universal Outlook-safe export",
+      "Basic compatibility checklist",
+      "Signature Pilot AI branding included"
+    ]
+  },
+  {
+    name: "Pro Individual",
+    price: "From $9/month",
+    copy: "For professionals who want cleaner exports, stronger styling control, and unbranded signatures.",
+    cta: "Upgrade to Pro",
+    to: "/upgrade",
+    featured: true,
+    features: [
       "Remove Signature Pilot AI branding",
-      "Enhanced logo and brand blending placeholder"
-    ],
-    featured: true
+      "All template families",
+      "All 12 built-in variants",
+      "Unlimited saved signatures",
+      "Raw HTML export",
+      "Download HTML",
+      "Advanced CTA destinations",
+      "Advanced styling controls",
+      "Premium typography and layout controls",
+      "Version history",
+      "One-click polish and smart recommendations"
+    ]
   },
   {
     name: "Business",
-    price: "$49/month",
-    copy: "For teams that need shared styling and company-wide rollout support.",
-    features: ["Everything in Pro", "Team/company mode placeholder", "Shared signature standards", "Priority onboarding support"]
+    price: "$49/month base",
+    copy: "Positioned for teams who need centralized signature control, consistent branding, and shared rollout standards.",
+    cta: "See Team Plans",
+    to: "/upgrade",
+    features: [
+      "Up to 10 users",
+      "Team signature management",
+      "Centralized brand control",
+      "Shared templates",
+      "Employee profile management",
+      "Team-wide CTA and disclaimer control",
+      "Role and department template support",
+      "Campaigns, analytics, and workspace sync on the roadmap"
+    ]
+  },
+  {
+    name: "Enterprise",
+    price: "Custom",
+    copy: "For larger organizations planning future rollout, governance, and deployment workflows.",
+    cta: "Talk to us",
+    to: "/upgrade",
+    features: [
+      "Custom rollout planning",
+      "Priority migration support",
+      "Future Microsoft 365 and Google Workspace sync planning",
+      "Future advanced governance and deployment options"
+    ]
   }
 ];
 
@@ -35,14 +78,17 @@ export default function PricingPage() {
     <div className="page-stack">
       <section className="section-intro">
         <p className="eyebrow">Pricing</p>
-        <h1>Choose the tier that fits your signature workflow.</h1>
-        <p className="hero-subheadline">The free tier is ready to ship signatures today. Pro is designed for brand polish, AI copy support, and premium layouts inside Signature Pilot AI.</p>
+        <h1>Choose the plan that fits how you manage email signatures.</h1>
+        <p className="hero-subheadline">
+          Signature Pilot AI is built for one thing: professional signatures that paste cleanly into Gmail, Outlook, Apple Mail, Yahoo, and other major
+          email clients without broken formatting.
+        </p>
       </section>
 
       <section className="pricing-grid">
         {PLANS.map((plan) => (
           <article key={plan.name} className={`pricing-card ${plan.featured ? "pricing-card-featured" : ""}`}>
-            <div>
+            <div className="pricing-card-copy">
               <p className="pricing-name">{plan.name}</p>
               <h2>{plan.price}</h2>
               <p>{plan.copy}</p>
@@ -52,8 +98,8 @@ export default function PricingPage() {
                 <li key={feature}>{feature}</li>
               ))}
             </ul>
-            <Link className={`button ${plan.featured ? "button-primary" : "button-secondary"}`} to={plan.name === "Free" ? "/builder" : "/upgrade"}>
-              {plan.name === "Free" ? "Start Free" : "Upgrade to Pro"}
+            <Link className={`button ${plan.featured ? "button-primary" : "button-secondary"}`} to={plan.to}>
+              {plan.cta}
             </Link>
           </article>
         ))}
@@ -61,26 +107,33 @@ export default function PricingPage() {
 
       <section className="panel">
         <div className="section-intro">
-          <p className="eyebrow">Compare Tiers</p>
-          <h2>Know exactly what unlocks when you upgrade.</h2>
+          <p className="eyebrow">Compatibility First</p>
+          <h2>Do not pay just to make a basic signature work.</h2>
+          <p className="hero-subheadline">
+            Free covers the basics people expect: logo upload, core templates, rendered copy, and a compatibility-safe export path. Pro unlocks cleaner
+            branding, more layout control, and advanced export tools. Business is the recurring team plan.
+          </p>
         </div>
+
         <div className="comparison-grid">
           <div className="comparison-card">
-            <strong>Free</strong>
-            <p>Copy a polished branded signature and get moving fast.</p>
+            <strong>What stays free</strong>
             <ul className="feature-list">
-              <li>Executive, Minimal, and Mobile Compact templates</li>
-              <li>Branded copy-ready signature export</li>
-              <li>Basic logo upload and color control</li>
+              <li>Basic signature creation</li>
+              <li>Logo upload</li>
+              <li>Core templates</li>
+              <li>Copy Signature export</li>
+              <li>Universal compatibility checklist</li>
             </ul>
           </div>
           <div className="comparison-card comparison-card-accent">
-            <strong>Pro</strong>
-            <p>Unlock cleaner exports, more layouts, and higher brand control.</p>
+            <strong>What upgrades</strong>
             <ul className="feature-list">
-              <li>Contractor and Corporate templates</li>
-              <li>Unbranded export and raw HTML copy</li>
-              <li>Advanced logo sizing, divider, social links, and AI help</li>
+              <li>Branding removal</li>
+              <li>Premium families and variants</li>
+              <li>Raw HTML and file export</li>
+              <li>Advanced styling and CTA destinations</li>
+              <li>Saved-history and team features</li>
             </ul>
           </div>
         </div>

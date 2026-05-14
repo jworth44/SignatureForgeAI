@@ -2858,6 +2858,18 @@ h3 {
   min-height: 3.2em;
 }
 
+.generator-template-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.generator-template-compatibility-note,
+.generator-export-primary-note {
+  margin: 0;
+}
+
 @media (max-width: 480px) {
   .topbar {
     padding: 0.7rem 0.75rem;
@@ -2922,6 +2934,16 @@ h3 {
   color: #6d28d9;
 }
 
+.generator-mini-badge-universal {
+  background: rgba(8, 80, 65, 0.1);
+  color: #085041;
+}
+
+.generator-mini-badge-modern {
+  background: rgba(234, 88, 12, 0.12);
+  color: #9a3412;
+}
+
 .generator-template-preview-frame {
   position: relative;
   display: flex;
@@ -2949,6 +2971,11 @@ h3 {
   width: 560px;
   transform: scale(0.405);
   transform-origin: top left;
+}
+
+.generator-export-primary {
+  display: grid;
+  gap: 0.45rem;
 }
 
 .generator-upload-copy {

@@ -73,18 +73,90 @@ const STARTER_PROFILES = {
 };
 
 const TEMPLATE_OPTIONS = [
-  { value: "professional-classic", label: "Professional Classic", description: "Balanced, traditional, and easy to scan.", pro: false },
-  { value: "executive-corporate", label: "Executive Corporate", description: "Structured leadership layout with stronger hierarchy.", pro: true },
-  { value: "minimal-clean", label: "Minimal Clean", description: "Lighter, cleaner, and content-first.", pro: false },
-  { value: "premium-consultant", label: "Premium Consultant", description: "Refined spacing with polished consultant styling.", pro: true },
-  { value: "contractor-bold", label: "Contractor Bold", description: "Service-first layout with stronger CTA emphasis.", pro: false },
-  { value: "real-estate", label: "Real Estate", description: "Listing-friendly structure with stronger profile framing.", pro: true },
-  { value: "legal-finance", label: "Legal / Finance", description: "Credibility-forward layout for advisory and legal roles.", pro: true },
-  { value: "health-medical", label: "Health / Medical", description: "Calm stacked layout for care-focused communication.", pro: true },
-  { value: "creative-designer", label: "Creative / Designer", description: "Portfolio-ready layout with more visual contrast.", pro: true },
-  { value: "tech-saas", label: "Tech / SaaS", description: "Modern product-forward layout with compact contact chips.", pro: true },
-  { value: "mobile-compact", label: "Mobile Compact", description: "Stacked and centered for narrow mobile email clients.", pro: false },
-  { value: "signature-card", label: "Signature Card", description: "Card-style presentation with contained profile framing.", pro: true }
+  {
+    value: "professional-classic",
+    label: "Professional Classic",
+    description: "Balanced, traditional, and designed for maximum email-client compatibility.",
+    compatibility: "universal",
+    pro: false
+  },
+  {
+    value: "executive-corporate",
+    label: "Executive Corporate",
+    description: "Structured leadership layout with stronger hierarchy and a more modern header treatment.",
+    compatibility: "modern",
+    pro: true
+  },
+  {
+    value: "minimal-clean",
+    label: "Minimal Clean",
+    description: "Lighter, cleaner, and compatibility-first when you want a minimal signature.",
+    compatibility: "universal",
+    pro: false
+  },
+  {
+    value: "premium-consultant",
+    label: "Premium Consultant",
+    description: "Refined spacing with a premium consultant feel for polished client-facing signatures.",
+    compatibility: "modern",
+    pro: true
+  },
+  {
+    value: "contractor-bold",
+    label: "Contractor Bold",
+    description: "Service-first layout with stronger CTA emphasis and bolder brand presence.",
+    compatibility: "modern",
+    pro: false
+  },
+  {
+    value: "real-estate",
+    label: "Real Estate",
+    description: "Listing-friendly structure with stronger profile framing for property-focused outreach.",
+    compatibility: "modern",
+    pro: true
+  },
+  {
+    value: "legal-finance",
+    label: "Legal / Finance",
+    description: "Credibility-forward layout for advisory, legal, and financial communication.",
+    compatibility: "modern",
+    pro: true
+  },
+  {
+    value: "health-medical",
+    label: "Health / Medical",
+    description: "Calm, card-style presentation for care-focused communication.",
+    compatibility: "modern",
+    pro: true
+  },
+  {
+    value: "creative-designer",
+    label: "Creative / Designer",
+    description: "Portfolio-ready layout with more visual contrast for brand-led signatures.",
+    compatibility: "modern",
+    pro: true
+  },
+  {
+    value: "tech-saas",
+    label: "Tech / SaaS",
+    description: "Modern product-forward layout with compact contact chips and sharper hierarchy.",
+    compatibility: "modern",
+    pro: true
+  },
+  {
+    value: "mobile-compact",
+    label: "Mobile Compact",
+    description: "Stacked and centered for narrow screens and safer mobile-email rendering.",
+    compatibility: "universal",
+    pro: false
+  },
+  {
+    value: "signature-card",
+    label: "Signature Card",
+    description: "Contained card-style signature for polished personal branding.",
+    compatibility: "modern",
+    pro: true
+  }
 ];
 
 const TEMPLATE_DEFAULT_COLORS = {
@@ -320,10 +392,10 @@ export default function BuilderPage() {
   const activeStepMeta = STEP_ITEMS[stepIndex] || STEP_ITEMS[0];
   const modeControl = (
     <label className="tier-toggle generator-mode-field">
-      <span>Access</span>
+      <span>Plan</span>
       <select value={draft.tier} onChange={(event) => handleTierChange(event.target.value)}>
-        <option value="free">Free Mode</option>
-        <option value="pro">Pro Mode</option>
+        <option value="free">Free</option>
+        <option value="pro">Pro Individual</option>
       </select>
     </label>
   );
@@ -894,7 +966,8 @@ export default function BuilderPage() {
   }
 
   function renderTemplatesStep() {
-    const selectedTemplateLabel = lookupTemplateLabel(artifacts.effectiveDraft.layout);
+    const selectedTemplate = lookupTemplateOption(artifacts.effectiveDraft.layout);
+    const selectedTemplateLabel = selectedTemplate.label;
     return (
       <div className="generator-step-stack">
         <section className="generator-card">
@@ -919,7 +992,16 @@ export default function BuilderPage() {
                   key={template.value}
                   className={`generator-template-card ${active ? "generator-template-card-active" : ""} ${locked ? "generator-template-card-locked" : ""}`}
                 >
-                  <strong>{template.label}</strong>
+                  <div className="generator-template-heading">
+                    <strong>{template.label}</strong>
+                    <span
+                      className={`generator-mini-badge ${
+                        template.compatibility === "universal" ? "generator-mini-badge-universal" : "generator-mini-badge-modern"
+                      }`}
+                    >
+                      {template.compatibility === "universal" ? "Universal" : "Modern"}
+                    </span>
+                  </div>
                   <div className="generator-template-preview-frame">
                     <span className={`generator-mini-badge ${template.pro ? "generator-mini-badge-pro" : "generator-mini-badge-free"}`}>
                       {template.pro ? "Pro" : "Free"}
@@ -929,6 +1011,11 @@ export default function BuilderPage() {
                     </div>
                   </div>
                   <p className="support-copy">{template.description}</p>
+                  <p className="support-copy generator-template-compatibility-note">
+                    {template.compatibility === "universal"
+                      ? "Best when Outlook-safe copy/paste is the priority."
+                      : "More visual polish, but test in Outlook before broad rollout."}
+                  </p>
                   <div className="generator-button-row">
                     <button
                       className={`button ${active ? "button-primary" : locked ? "button-locked" : "button-secondary"}`}
@@ -949,6 +1036,11 @@ export default function BuilderPage() {
               <strong>{artifacts.effectiveDraft.variantLabel}</strong>
               <p className="support-copy">
                 Selected family: {selectedTemplateLabel}. Regenerate to cycle through the 12 built-in structure variants.
+              </p>
+              <p className="support-copy">
+                {selectedTemplate.compatibility === "universal"
+                  ? "Universal templates are the safest default for Gmail, Outlook, Apple Mail, and Yahoo."
+                  : "Modern templates add stronger visual treatment, but Outlook may need extra paste testing."}
               </p>
             </div>
             <div className="generator-button-row">
@@ -1297,6 +1389,12 @@ export default function BuilderPage() {
                 <span>{exportCopySuccessTarget === "signature" ? "Copied!" : "Copy Signature"}</span>
               </span>
             </button>
+            <p className="support-copy generator-export-primary-note">Best for Gmail, Outlook, Apple Mail, and Yahoo.</p>
+            <p className="support-copy generator-export-primary-note">
+              {lookupTemplateOption(artifacts.effectiveDraft.layout).compatibility === "universal"
+                ? "Universal templates are designed for maximum email-client compatibility."
+                : "Modern templates look richer, but Outlook may need a quick paste test before rollout."}
+            </p>
           </div>
 
           <section className="generator-export-disclosure">
@@ -1313,9 +1411,11 @@ export default function BuilderPage() {
               <div className="generator-export-disclosure-body">
                 <div className="generator-export-notes">
                   <p>Copy Signature is best for Gmail, Outlook, Apple Mail, and Yahoo.</p>
+                  <p>Universal templates are designed for maximum email-client compatibility.</p>
+                  <p>Modern templates may need extra Outlook testing before a broad rollout.</p>
                   <p>Raw HTML is a Pro export for platforms that specifically ask for HTML code.</p>
                   <p>Download HTML gives you a backup file for handoff or archiving.</p>
-                  {isFree ? <p>Free exports always include Signature Pilot AI branding inside the signature.</p> : null}
+                  {isFree ? <p>Free exports keep Signature Pilot AI branding inside the signature. Upgrade to remove branding and unlock advanced export controls.</p> : null}
                 </div>
 
                 <div className="generator-export-grid">
@@ -1766,8 +1866,12 @@ function normalizeHexColor(value) {
   return String(value || "").trim().toUpperCase();
 }
 
+function lookupTemplateOption(layout) {
+  return TEMPLATE_OPTIONS.find((template) => template.value === layout) || TEMPLATE_OPTIONS[0];
+}
+
 function lookupTemplateLabel(layout) {
-  return TEMPLATE_OPTIONS.find((template) => template.value === layout)?.label || "Professional Classic";
+  return lookupTemplateOption(layout)?.label || "Professional Classic";
 }
 
 function buildSmartSetupRecommendation(draft, smartSetup) {
@@ -1985,11 +2089,14 @@ function evaluateSignatureHealth(draft) {
 }
 
 function buildCompatibilityChecklist(draft) {
+  const selectedTemplate = lookupTemplateOption(draft.layout);
+  const isUniversal = selectedTemplate.compatibility === "universal";
   return [
     { label: "Gmail ready", passed: true },
-    { label: "Outlook ready", passed: true },
+    { label: isUniversal ? "Universal layout selected for maximum compatibility" : "Modern layout selected - test in Outlook before rollout", passed: isUniversal },
     { label: "Apple Mail ready", passed: true },
-    { label: "Mobile compact available", passed: true },
+    { label: "Yahoo ready", passed: true },
+    { label: "Copy Signature remains the safest paste path", passed: true },
     { label: "No visible borders", passed: true },
     { label: "Clickable links", passed: Boolean(draft.phone || draft.email || draft.website) }
   ];

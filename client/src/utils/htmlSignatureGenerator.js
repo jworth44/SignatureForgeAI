@@ -592,10 +592,17 @@ function renderBannerLayout(data, options = {}) {
     text: sanitized.ctaText || familyMeta.label,
     url: resolveCtaHref(sanitized)
   });
-  const bannerPadding = variantConfig.dense ? "10px 14px" : "12px 16px";
+  const badgeMarkup = sanitized.showTemplateTags && variantConfig.topBadge
+    ? `<tr><td style="${cellResetStyle()}padding:0 0 8px 0;"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:${fadeColor(brandColor, 0.12)};color:${brandColor};font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:700;">${familyMeta.name}</span></td></tr>`
+    : "";
+  const accentBarMarkup = sanitized.showTemplateTags && variantConfig.accentBar
+    ? `<tr><td style="${cellResetStyle()}padding:0 0 10px 0;"><div style="width:100%;max-width:120px;height:6px;border-radius:999px;background:${brandColor};font-size:0;line-height:0;">&nbsp;</div></td></tr>`
+    : "";
   return `
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}width:100%;max-width:620px;font-family:Arial,Helvetica,sans-serif;color:#111827;">
   <tbody>
+    ${badgeMarkup}
+    ${accentBarMarkup}
     <tr>
       <td style="${cellResetStyle()}background-color:${brandColor};padding:0;height:52px;vertical-align:middle;">
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="${tableResetStyle()}width:100%;background-color:${brandColor};">
